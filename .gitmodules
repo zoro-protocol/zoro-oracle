@@ -4,3 +4,6 @@
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "lib/zoro-protocol"]
+	path = lib/zoro-protocol
+	url = https://github.com/zoro-protocol/zoro-protocol
