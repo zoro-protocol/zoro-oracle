@@ -37,18 +37,18 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         uint256 price,
         uint256 timestamp
     ) external onlyOwner {
-        (PriceData memory oldData, FeedData memory config) = _getData(feed);
+        (PriceData memory oldPd, FeedData memory fd) = _getData(feed);
 
-        _validateTimestamp(oldData, timestamp);
-        _validatePrice(oldData, config, price);
+        _validateTimestamp(oldPd, timestamp);
+        _validatePrice(oldPd, fd, price);
 
-        priceData[config.cToken] = PriceData(feed, price, timestamp);
+        priceData[fd.cToken] = PriceData(feed, price, timestamp);
 
         emit NewPrice(feed, price, timestamp);
     }
 
     /**
-     * @notice Set config parameters to zero for default values
+     * @notice Set data parameters to zero for default values
      */
     function setFeedData(
         AggregatorV3Interface feed,
@@ -67,11 +67,11 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         override
         returns (uint256)
     {
-        (PriceData memory data, FeedData memory config) = _getData(cToken);
+        (PriceData memory pd, FeedData memory fd) = _getData(cToken);
 
-        _validateLiveness(config, data.timestamp);
+        _validateLiveness(fd, pd.timestamp);
 
-        return data.price;
+        return pd.price;
     }
 
     function _getData(CToken cToken)
@@ -79,10 +79,10 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         view
         returns (PriceData memory, FeedData memory)
     {
-        PriceData storage data = priceData[cToken];
-        FeedData storage config = feedData[data.feed];
+        PriceData storage pd = priceData[cToken];
+        FeedData storage fd = feedData[pd.feed];
 
-        return (data, config);
+        return (pd, fd);
     }
 
     function _getData(AggregatorV3Interface feed)
@@ -90,47 +90,44 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         view
         returns (PriceData memory, FeedData memory)
     {
-        FeedData storage config = feedData[feed];
-        PriceData storage data = priceData[config.cToken];
+        FeedData storage fd = feedData[feed];
+        PriceData storage pd = priceData[fd.cToken];
 
-        return (data, config);
+        return (pd, fd);
     }
 
-    function _validateLiveness(FeedData memory config, uint256 timestamp)
+    function _validateLiveness(FeedData memory fd, uint256 timestamp)
         private
         view
     {
-        uint256 livePeriod = _useDefault(
-            config.livePeriod,
-            DEFAULT_LIVE_PERIOD
-        );
+        uint256 livePeriod = _useDefault(fd.livePeriod, DEFAULT_LIVE_PERIOD);
 
         if (timestamp + livePeriod < block.timestamp)
             revert PriceIsStale(timestamp);
     }
 
-    function _validateTimestamp(PriceData memory data, uint256 timestamp)
+    function _validateTimestamp(PriceData memory pd, uint256 timestamp)
         private
         pure
     {
-        if (timestamp < data.timestamp) revert InvalidTimestamp(timestamp);
+        if (timestamp < pd.timestamp) revert InvalidTimestamp(timestamp);
     }
 
     function _validatePrice(
-        PriceData memory data,
-        FeedData memory config,
+        PriceData memory pd,
+        FeedData memory fd,
         uint256 price
     ) private pure {
         if (price == 0) revert PriceIsZero();
 
-        uint256 oldPrice = data.price;
+        uint256 oldPrice = pd.price;
         uint256 delta = price.max(oldPrice) - price.min(oldPrice);
 
         if (delta > 0) {
             uint256 deltaMantissa = oldPrice.mulDiv(MAX_DELTA_BASE, delta);
 
             uint256 maxDeltaMantissa = _useDefault(
-                config.maxDeltaMantissa,
+                fd.maxDeltaMantissa,
                 DEFAULT_MAX_DELTA_MANTISSA
             );
 
