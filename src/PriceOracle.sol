@@ -121,19 +121,26 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         if (price == 0) revert PriceIsZero();
 
         uint256 oldPrice = pd.price;
-        uint256 delta = price.max(oldPrice) - price.min(oldPrice);
 
-        if (delta > 0) {
-            uint256 deltaMantissa = oldPrice.mulDiv(MAX_DELTA_BASE, delta);
+        uint256 deltaMantissa = _calculateDeltaMantissa(oldPrice, price);
 
-            uint256 maxDeltaMantissa = _useDefault(
-                fd.maxDeltaMantissa,
-                DEFAULT_MAX_DELTA_MANTISSA
-            );
+        uint256 maxDeltaMantissa = _useDefault(
+            fd.maxDeltaMantissa,
+            DEFAULT_MAX_DELTA_MANTISSA
+        );
 
-            if (deltaMantissa > maxDeltaMantissa)
-                revert PriceExceededDelta(oldPrice, price);
-        }
+        if (deltaMantissa > maxDeltaMantissa)
+            revert PriceExceededDelta(oldPrice, price);
+    }
+
+    function _calculateDeltaMantissa(uint256 oldPrice, uint256 newPrice)
+        private
+        pure
+        returns (uint256)
+    {
+        uint256 delta = newPrice.max(oldPrice) - newPrice.min(oldPrice);
+
+        return delta > 0 ? oldPrice.mulDiv(MAX_DELTA_BASE, delta) : 0;
     }
 
     function _useDefault(uint256 value, uint256 defaultValue)
