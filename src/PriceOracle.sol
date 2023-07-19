@@ -37,7 +37,11 @@ contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
         view
         override
         returns (uint256)
-    {}
+    {
+        PriceData storage data = priceData[cToken];
+
+        return data.price;
+    }
 
     function _validateTimestamp(PriceData memory data, uint256 timestamp)
         private
