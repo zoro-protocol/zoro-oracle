@@ -4,51 +4,58 @@ pragma solidity 0.8.10;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {CToken, PriceOracle as IPriceOracle} from "@zoro-protocol/PriceOracle.sol";
 import {IPriceReceiver, PriceData} from "/IPriceReceiver.sol";
-import {IPriceConfig, PriceConfig, MAX_DELTA_BASE, DEFAULT_MAX_DELTA_MANTISSA, DEFAULT_LIVE_PERIOD} from "/IPriceConfig.sol";
+import {IFeedRegistry, FeedData, MAX_DELTA_BASE, DEFAULT_MAX_DELTA_MANTISSA, DEFAULT_LIVE_PERIOD} from "/IFeedRegistry.sol";
+import {AggregatorV3Interface} from "chainlink/contracts/interfaces/AggregatorV3Interface.sol";
 
-contract PriceOracle is IPriceConfig, IPriceReceiver, IPriceOracle, Ownable {
+contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
     mapping(CToken => PriceData) priceData;
-    mapping(CToken => PriceConfig) priceConfig;
+    mapping(AggregatorV3Interface => FeedData) feedData;
 
     error InvalidTimestamp(uint256 timestamp);
     error PriceIsZero();
     error PriceExceededDelta(uint256 oldPrice, uint256 price);
     error PriceIsStale(uint256 timestamp);
 
-    event NewPrice(CToken cToken, uint256 price, uint256 timestamp);
-    event UpdatePriceConfig(
+    event NewPrice(
+        AggregatorV3Interface feed,
+        uint256 price,
+        uint256 timestamp
+    );
+
+    event UpdateFeed(
+        AggregatorV3Interface feed,
         CToken cToken,
         uint256 livePeriod,
         uint256 maxDeltaMantissa
     );
 
     function setUnderlyingPrice(
-        CToken cToken,
+        AggregatorV3Interface feed,
         uint256 price,
         uint256 timestamp
     ) external onlyOwner {
-        PriceData storage oldData = priceData[cToken];
-        PriceConfig storage config = priceConfig[cToken];
+        (PriceData memory oldData, FeedData memory config) = _getData(feed);
 
         _validateTimestamp(oldData, timestamp);
         _validatePrice(oldData, config, price);
 
-        priceData[cToken] = PriceData(price, timestamp);
+        priceData[config.cToken] = PriceData(feed, price, timestamp);
 
-        emit NewPrice(cToken, price, timestamp);
+        emit NewPrice(feed, price, timestamp);
     }
 
     /**
      * @notice Set config parameters to zero for default values
      */
-    function setPriceConfig(
+    function setFeedData(
+        AggregatorV3Interface feed,
         CToken cToken,
         uint256 livePeriod,
         uint256 maxDeltaMantissa
     ) external onlyOwner {
-        priceConfig[cToken] = PriceConfig(livePeriod, maxDeltaMantissa);
+        feedData[feed] = FeedData(cToken, livePeriod, maxDeltaMantissa);
 
-        emit UpdatePriceConfig(cToken, livePeriod, maxDeltaMantissa);
+        emit UpdateFeed(feed, cToken, livePeriod, maxDeltaMantissa);
     }
 
     function getUnderlyingPrice(CToken cToken)
@@ -57,12 +64,33 @@ contract PriceOracle is IPriceConfig, IPriceReceiver, IPriceOracle, Ownable {
         override
         returns (uint256)
     {
-        PriceData storage data = priceData[cToken];
-        PriceConfig storage config = priceConfig[cToken];
+        (PriceData memory data, FeedData memory config) = _getData(cToken);
 
         _validateLiveness(config, data.timestamp);
 
         return data.price;
+    }
+
+    function _getData(CToken cToken)
+        private
+        view
+        returns (PriceData memory, FeedData memory)
+    {
+        PriceData storage data = priceData[cToken];
+        FeedData storage config = feedData[data.feed];
+
+        return (data, config);
+    }
+
+    function _getData(AggregatorV3Interface feed)
+        private
+        view
+        returns (PriceData memory, FeedData memory)
+    {
+        FeedData storage config = feedData[feed];
+        PriceData storage data = priceData[config.cToken];
+
+        return (data, config);
     }
 
     function _validateTimestamp(PriceData memory data, uint256 timestamp)
@@ -74,7 +102,7 @@ contract PriceOracle is IPriceConfig, IPriceReceiver, IPriceOracle, Ownable {
 
     function _validatePrice(
         PriceData memory data,
-        PriceConfig memory config,
+        FeedData memory config,
         uint256 price
     ) private pure {
         if (price == 0) revert PriceIsZero();
@@ -91,7 +119,7 @@ contract PriceOracle is IPriceConfig, IPriceReceiver, IPriceOracle, Ownable {
             revert PriceExceededDelta(oldPrice, price);
     }
 
-    function _validateLiveness(PriceConfig memory config, uint256 timestamp)
+    function _validateLiveness(FeedData memory config, uint256 timestamp)
         private
         pure
     {
