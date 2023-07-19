@@ -93,6 +93,19 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         return (data, config);
     }
 
+    function _validateLiveness(FeedData memory config, uint256 timestamp)
+        private
+        view
+    {
+        uint256 livePeriod = _useDefault(
+            config.livePeriod,
+            DEFAULT_LIVE_PERIOD
+        );
+
+        if (timestamp + livePeriod < block.timestamp)
+            revert PriceIsStale(timestamp);
+    }
+
     function _validateTimestamp(PriceData memory data, uint256 timestamp)
         private
         pure
@@ -111,22 +124,20 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         uint256 delta = price > oldPrice ? price - oldPrice : oldPrice - price;
         uint256 deltaMantissa = (oldPrice * MAX_DELTA_BASE) / delta;
 
-        uint256 maxDeltaMantissa = config.maxDeltaMantissa > 0
-            ? config.maxDeltaMantissa
-            : DEFAULT_MAX_DELTA_MANTISSA;
+            uint256 maxDeltaMantissa = _useDefault(
+                config.maxDeltaMantissa,
+                DEFAULT_MAX_DELTA_MANTISSA
+            );
 
         if (deltaMantissa > maxDeltaMantissa)
             revert PriceExceededDelta(oldPrice, price);
     }
 
-    function _validateLiveness(FeedData memory config, uint256 timestamp)
+    function _useDefault(uint256 value, uint256 defaultValue)
         private
         pure
+        returns (uint256)
     {
-        uint256 livePeriod = config.livePeriod > 0
-            ? config.livePeriod
-            : DEFAULT_LIVE_PERIOD;
-
-        if (timestamp + livePeriod < timestamp) revert PriceIsStale(timestamp);
+        return value > 0 ? value : defaultValue;
     }
 }
