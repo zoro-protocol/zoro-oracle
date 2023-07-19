@@ -4,12 +4,9 @@ pragma solidity 0.8.10;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {CToken, PriceOracle as IPriceOracle} from "@zoro-protocol/PriceOracle.sol";
 import {IPriceReceiver, PriceData} from "/IPriceReceiver.sol";
+import {IPriceConfig, PriceConfig, MAX_DELTA_BASE, MAX_DELTA_MANTISSA, LIVE_PERIOD} from "/IPriceConfig.sol";
 
-contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
-    uint256 constant MAX_DELTA_BASE = 1e18;
-    uint256 constant MAX_DELTA_MANTISSA = 20 * 1e16; // 20%
-    uint256 constant LIVE_PERIOD = 30 hours;
-
+contract PriceOracle is IPriceConfig, IPriceReceiver, IPriceOracle, Ownable {
     mapping(CToken => PriceData) priceData;
 
     error InvalidTimestamp(uint256 timestamp);
@@ -33,6 +30,12 @@ contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
 
         emit NewPrice(cToken, price, timestamp);
     }
+
+    function setPriceConfig(
+        CToken cToken,
+        uint256 livePeriod,
+        uint256 maxDeltaMantissa
+    ) external onlyOwner {}
 
     function getUnderlyingPrice(CToken cToken)
         external
