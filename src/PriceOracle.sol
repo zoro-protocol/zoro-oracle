@@ -27,7 +27,10 @@ contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
         returns (uint256)
     {}
 
-    function _validateTimestamp(PriceData data, uint256 timestamp) private {
+    function _validateTimestamp(PriceData memory data, uint256 timestamp)
+        private
+        pure
+    {
         if (timestamp <= data.timestamp) revert InvalidTimestamp(timestamp);
     }
 }
