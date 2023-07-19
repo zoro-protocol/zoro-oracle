@@ -24,6 +24,8 @@ contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
 
         _validateTimestamp(oldData, timestamp);
         _validatePrice(oldData, price);
+
+        priceData[cToken] = PriceData(price, timestamp);
     }
 
     function getUnderlyingPrice(CToken cToken)
