@@ -5,12 +5,12 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {CToken, PriceOracle as IPriceOracle} from "@zoro-protocol/PriceOracle.sol";
 import {IPriceReceiver} from "/IPriceReceiver.sol";
 
-contract PriceOracle is IPriceReceiver, IPriceOracle {
+contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
     function setUnderlyingPrice(
         CToken cToken,
         uint256 price,
         uint256 timestamp
-    ) external {}
+    ) external onlyOwner {}
 
     function getUnderlyingPrice(CToken cToken)
         external
