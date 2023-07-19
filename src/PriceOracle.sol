@@ -15,7 +15,7 @@ contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
     error InvalidTimestamp(uint256 timestamp);
     error PriceIsZero();
     error PriceExceededDelta(uint256 oldPrice, uint256 price);
-    error PriceIsStale(CToken cToken, uint256 price, uint256 timestamp);
+    error PriceIsStale(uint256 timestamp);
 
     event NewPrice(CToken cToken, uint256 price, uint256 timestamp);
 
@@ -42,8 +42,7 @@ contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
     {
         PriceData storage data = priceData[cToken];
 
-        if (data.timestamp + LIVE_PERIOD < block.timestamp)
-            revert PriceIsStale(cToken, data.price, data.timestamp);
+        _validateLiveness(data.timestamp);
 
         return data.price;
     }
@@ -64,5 +63,9 @@ contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
 
         if (deltaMantissa > MAX_DELTA_MANTISSA)
             revert PriceExceededDelta(oldPrice, price);
+    }
+
+    function _validateLiveness(uint256 timestamp) private pure {
+        if (timestamp + LIVE_PERIOD < timestamp) revert PriceIsStale(timestamp);
     }
 }
