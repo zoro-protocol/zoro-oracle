@@ -8,12 +8,14 @@ import {IPriceReceiver, PriceData} from "/IPriceReceiver.sol";
 contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
     uint256 constant MAX_DELTA_BASE = 1e18;
     uint256 constant MAX_DELTA_MANTISSA = 20 * 1e16; // 20%
+    uint256 constant LIVE_PERIOD = 30 hours;
 
     mapping(CToken => PriceData) priceData;
 
     error InvalidTimestamp(uint256 timestamp);
     error PriceIsZero();
     error PriceExceededDelta(uint256 oldPrice, uint256 price);
+    error PriceIsStale(CToken cToken, uint256 price, uint256 timestamp);
 
     event NewPrice(CToken cToken, uint256 price, uint256 timestamp);
 
@@ -39,6 +41,9 @@ contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
         returns (uint256)
     {
         PriceData storage data = priceData[cToken];
+
+        if (data.timestamp + LIVE_PERIOD < block.timestamp)
+            revert PriceIsStale(cToken, data.price, data.timestamp);
 
         return data.price;
     }
