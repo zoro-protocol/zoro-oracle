@@ -2,12 +2,15 @@
 pragma solidity 0.8.10;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {CToken, PriceOracle as IPriceOracle} from "@zoro-protocol/PriceOracle.sol";
 import {IPriceReceiver, PriceData} from "/IPriceReceiver.sol";
 import {IFeedRegistry, FeedData, MAX_DELTA_BASE, DEFAULT_MAX_DELTA_MANTISSA, DEFAULT_LIVE_PERIOD} from "/IFeedRegistry.sol";
 import {AggregatorV3Interface} from "chainlink/contracts/interfaces/AggregatorV3Interface.sol";
 
 contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
+    using Math for uint256;
+
     mapping(CToken => PriceData) priceData;
     mapping(AggregatorV3Interface => FeedData) feedData;
 
@@ -121,16 +124,19 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         if (price == 0) revert PriceIsZero();
 
         uint256 oldPrice = data.price;
-        uint256 delta = price > oldPrice ? price - oldPrice : oldPrice - price;
-        uint256 deltaMantissa = (oldPrice * MAX_DELTA_BASE) / delta;
+        uint256 delta = price.max(oldPrice) - price.min(oldPrice);
+
+        if (delta > 0) {
+            uint256 deltaMantissa = oldPrice.mulDiv(MAX_DELTA_BASE, delta);
 
             uint256 maxDeltaMantissa = _useDefault(
                 config.maxDeltaMantissa,
                 DEFAULT_MAX_DELTA_MANTISSA
             );
 
-        if (deltaMantissa > maxDeltaMantissa)
-            revert PriceExceededDelta(oldPrice, price);
+            if (deltaMantissa > maxDeltaMantissa)
+                revert PriceExceededDelta(oldPrice, price);
+        }
     }
 
     function _useDefault(uint256 value, uint256 defaultValue)
