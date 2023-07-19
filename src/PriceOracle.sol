@@ -97,7 +97,7 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         private
         pure
     {
-        if (timestamp <= data.timestamp) revert InvalidTimestamp(timestamp);
+        if (timestamp < data.timestamp) revert InvalidTimestamp(timestamp);
     }
 
     function _validatePrice(
