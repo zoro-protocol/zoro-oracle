@@ -15,6 +15,8 @@ contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
     error PriceIsZero();
     error PriceExceededDelta(uint256 oldPrice, uint256 price);
 
+    event NewPrice(CToken cToken, uint256 price, uint256 timestamp);
+
     function setUnderlyingPrice(
         CToken cToken,
         uint256 price,
@@ -26,6 +28,8 @@ contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
         _validatePrice(oldData, price);
 
         priceData[cToken] = PriceData(price, timestamp);
+
+        emit NewPrice(cToken, price, timestamp);
     }
 
     function getUnderlyingPrice(CToken cToken)
