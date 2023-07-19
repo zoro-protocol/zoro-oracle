@@ -6,11 +6,19 @@ import {CToken, PriceOracle as IPriceOracle} from "@zoro-protocol/PriceOracle.so
 import {IPriceReceiver, PriceData} from "/IPriceReceiver.sol";
 
 contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
+    mapping(CToken => PriceData) priceData;
+
+    error InvalidTimestamp(uint256 timestamp);
+
     function setUnderlyingPrice(
         CToken cToken,
         uint256 price,
         uint256 timestamp
-    ) external onlyOwner {}
+    ) external onlyOwner {
+        PriceData storage oldData = priceData[cToken];
+
+        _validateTimestamp(oldData, timestamp);
+    }
 
     function getUnderlyingPrice(CToken cToken)
         external
@@ -18,4 +26,8 @@ contract PriceOracle is IPriceReceiver, IPriceOracle, Ownable {
         override
         returns (uint256)
     {}
+
+    function _validateTimestamp(PriceData data, uint256 timestamp) private {
+        if (timestamp <= data.timestamp) revert InvalidTimestamp(timestamp);
+    }
 }
