@@ -4,10 +4,11 @@ pragma solidity 0.8.10;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {CToken, PriceOracle as IPriceOracle} from "@zoro-protocol/PriceOracle.sol";
 import {IPriceReceiver, PriceData} from "/IPriceReceiver.sol";
-import {IPriceConfig, PriceConfig, MAX_DELTA_BASE, MAX_DELTA_MANTISSA, LIVE_PERIOD} from "/IPriceConfig.sol";
+import {IPriceConfig, PriceConfig, MAX_DELTA_BASE, DEFAULT_MAX_DELTA_MANTISSA, DEFAULT_LIVE_PERIOD} from "/IPriceConfig.sol";
 
 contract PriceOracle is IPriceConfig, IPriceReceiver, IPriceOracle, Ownable {
     mapping(CToken => PriceData) priceData;
+    mapping(CToken => PriceConfig) priceConfig;
 
     error InvalidTimestamp(uint256 timestamp);
     error PriceIsZero();
@@ -22,9 +23,10 @@ contract PriceOracle is IPriceConfig, IPriceReceiver, IPriceOracle, Ownable {
         uint256 timestamp
     ) external onlyOwner {
         PriceData storage oldData = priceData[cToken];
+        PriceConfig storage config = priceConfig[cToken];
 
         _validateTimestamp(oldData, timestamp);
-        _validatePrice(oldData, price);
+        _validatePrice(oldData, config, price);
 
         priceData[cToken] = PriceData(price, timestamp);
 
@@ -44,8 +46,9 @@ contract PriceOracle is IPriceConfig, IPriceReceiver, IPriceOracle, Ownable {
         returns (uint256)
     {
         PriceData storage data = priceData[cToken];
+        PriceConfig storage config = priceConfig[cToken];
 
-        _validateLiveness(data.timestamp);
+        _validateLiveness(config, data.timestamp);
 
         return data.price;
     }
@@ -57,18 +60,33 @@ contract PriceOracle is IPriceConfig, IPriceReceiver, IPriceOracle, Ownable {
         if (timestamp <= data.timestamp) revert InvalidTimestamp(timestamp);
     }
 
-    function _validatePrice(PriceData memory data, uint256 price) private pure {
+    function _validatePrice(
+        PriceData memory data,
+        PriceConfig memory config,
+        uint256 price
+    ) private pure {
         if (price == 0) revert PriceIsZero();
 
         uint256 oldPrice = data.price;
         uint256 delta = price > oldPrice ? price - oldPrice : oldPrice - price;
         uint256 deltaMantissa = (oldPrice * MAX_DELTA_BASE) / delta;
 
-        if (deltaMantissa > MAX_DELTA_MANTISSA)
+        uint256 maxDeltaMantissa = config.maxDeltaMantissa > 0
+            ? config.maxDeltaMantissa
+            : DEFAULT_MAX_DELTA_MANTISSA;
+
+        if (deltaMantissa > maxDeltaMantissa)
             revert PriceExceededDelta(oldPrice, price);
     }
 
-    function _validateLiveness(uint256 timestamp) private pure {
-        if (timestamp + LIVE_PERIOD < timestamp) revert PriceIsStale(timestamp);
+    function _validateLiveness(PriceConfig memory config, uint256 timestamp)
+        private
+        pure
+    {
+        uint256 livePeriod = config.livePeriod > 0
+            ? config.livePeriod
+            : DEFAULT_LIVE_PERIOD;
+
+        if (timestamp + livePeriod < timestamp) revert PriceIsStale(timestamp);
     }
 }
