@@ -16,6 +16,11 @@ contract PriceOracle is IPriceConfig, IPriceReceiver, IPriceOracle, Ownable {
     error PriceIsStale(uint256 timestamp);
 
     event NewPrice(CToken cToken, uint256 price, uint256 timestamp);
+    event UpdatePriceConfig(
+        CToken cToken,
+        uint256 livePeriod,
+        uint256 maxDeltaMantissa
+    );
 
     function setUnderlyingPrice(
         CToken cToken,
@@ -33,11 +38,18 @@ contract PriceOracle is IPriceConfig, IPriceReceiver, IPriceOracle, Ownable {
         emit NewPrice(cToken, price, timestamp);
     }
 
+    /**
+     * @notice Set config parameters to zero for default values
+     */
     function setPriceConfig(
         CToken cToken,
         uint256 livePeriod,
         uint256 maxDeltaMantissa
-    ) external onlyOwner {}
+    ) external onlyOwner {
+        priceConfig[cToken] = PriceConfig(livePeriod, maxDeltaMantissa);
+
+        emit UpdatePriceConfig(cToken, livePeriod, maxDeltaMantissa);
+    }
 
     function getUnderlyingPrice(CToken cToken)
         external
