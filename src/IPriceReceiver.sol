@@ -3,12 +3,12 @@ pragma solidity 0.8.10;
 
 import {CToken} from "@zoro-protocol/CToken.sol";
 
-interface IPriceReceiver {
-    struct Data {
-        uint256 price;
-        uint256 timestamp;
-    }
+struct PriceData {
+    uint256 price;
+    uint256 timestamp;
+}
 
+interface IPriceReceiver {
     function setUnderlyingPrice(
         CToken cToken,
         uint256 price,
