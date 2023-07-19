@@ -1,3 +1,4 @@
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
 @zoro-protocol/=lib/zoro-protocol/contracts/
+chainlink/contracts/=node_modules/@chainlink/contracts/src/v0.8/
 /=src/
