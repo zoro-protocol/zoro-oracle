@@ -16,7 +16,6 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
 
     error InvalidTimestamp(uint256 timestamp);
     error PriceIsZero();
-    error PriceExceededDelta(uint256 oldPrice, uint256 price);
     error PriceIsStale(uint256 timestamp);
 
     event NewPrice(
@@ -32,6 +31,8 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         uint256 maxDeltaMantissa
     );
 
+    event PriceExceededDelta(uint256 oldPrice, uint256 price);
+
     function setUnderlyingPrice(
         AggregatorV3Interface feed,
         uint256 price,
@@ -40,11 +41,13 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         (PriceData memory oldPd, FeedData memory fd) = _getData(feed);
 
         _validateTimestamp(oldPd, timestamp);
-        _validatePrice(oldPd, fd, price);
+        _validatePrice(price);
 
-        priceData[fd.cToken] = PriceData(feed, price, timestamp);
+        uint256 newPrice = _sanitizePrice(oldPd, fd, price);
 
-        emit NewPrice(feed, price, timestamp);
+        priceData[fd.cToken] = PriceData(feed, newPrice, timestamp);
+
+        emit NewPrice(feed, newPrice, timestamp);
     }
 
     /**
@@ -72,6 +75,34 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         _validateLiveness(fd, pd.timestamp);
 
         return pd.price;
+    }
+
+    function _sanitizePrice(
+        PriceData memory pd,
+        FeedData memory fd,
+        uint256 price
+    ) private returns (uint256) {
+        uint256 oldPrice = pd.price;
+
+        uint256 deltaMantissa = _calculateDeltaMantissa(oldPrice, price);
+
+        uint256 maxDeltaMantissa = _useDefault(
+            fd.maxDeltaMantissa,
+            DEFAULT_MAX_DELTA_MANTISSA
+        );
+
+        uint256 newPrice = 0;
+
+        if (deltaMantissa <= maxDeltaMantissa) newPrice = price;
+        else {
+            newPrice = price > oldPrice
+                ? oldPrice + maxDeltaMantissa
+                : oldPrice - maxDeltaMantissa;
+
+            emit PriceExceededDelta(oldPrice, price);
+        }
+
+        return newPrice;
     }
 
     function _getData(CToken cToken)
@@ -113,24 +144,8 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         if (timestamp < pd.timestamp) revert InvalidTimestamp(timestamp);
     }
 
-    function _validatePrice(
-        PriceData memory pd,
-        FeedData memory fd,
-        uint256 price
-    ) private pure {
+    function _validatePrice(uint256 price) private pure {
         if (price == 0) revert PriceIsZero();
-
-        uint256 oldPrice = pd.price;
-
-        uint256 deltaMantissa = _calculateDeltaMantissa(oldPrice, price);
-
-        uint256 maxDeltaMantissa = _useDefault(
-            fd.maxDeltaMantissa,
-            DEFAULT_MAX_DELTA_MANTISSA
-        );
-
-        if (deltaMantissa > maxDeltaMantissa)
-            revert PriceExceededDelta(oldPrice, price);
     }
 
     function _calculateDeltaMantissa(uint256 oldPrice, uint256 newPrice)
