@@ -9,6 +9,10 @@ import {IPriceReceiver, PriceData} from "/IPriceReceiver.sol";
 import {IFeedRegistry, FeedData, MAX_DELTA_BASE, DEFAULT_MAX_DELTA_MANTISSA, DEFAULT_LIVE_PERIOD} from "/IFeedRegistry.sol";
 import {AggregatorV3Interface} from "chainlink/contracts/interfaces/AggregatorV3Interface.sol";
 
+error InvalidTimestamp(uint256 timestamp);
+error PriceIsZero();
+error PriceIsStale(uint256 timestamp);
+
 contract PriceOracle is
     IFeedRegistry,
     IPriceReceiver,
@@ -20,10 +24,6 @@ contract PriceOracle is
 
     mapping(CToken => PriceData) priceData;
     mapping(AggregatorV3Interface => FeedData) feedData;
-
-    error InvalidTimestamp(uint256 timestamp);
-    error PriceIsZero();
-    error PriceIsStale(uint256 timestamp);
 
     event NewPrice(
         AggregatorV3Interface feed,
