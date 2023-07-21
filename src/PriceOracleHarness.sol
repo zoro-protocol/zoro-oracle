@@ -11,4 +11,12 @@ contract PriceOracleHarness is PriceOracle {
     {
         _validateTimestamp(pd, timestamp);
     }
+
+    function exposed_calculateDeltaMantissa(uint256 oldPrice, uint256 newPrice)
+        external
+        pure
+        returns (uint256)
+    {
+        return _calculateDeltaMantissa(oldPrice, newPrice);
+    }
 }
