@@ -3,8 +3,16 @@ pragma solidity 0.8.10;
 
 import "/PriceOracle.sol";
 import {PriceData} from "/IPriceReceiver.sol";
+import {FeedData} from "/IFeedRegistry.sol";
 
 contract PriceOracleHarness is PriceOracle {
+    function exposed_validateLiveness(FeedData memory fd, uint256 timestamp)
+        external
+        view
+    {
+        _validateLiveness(fd, timestamp);
+    }
+
     function exposed_validateTimestamp(PriceData memory pd, uint256 timestamp)
         external
         pure
