@@ -2,13 +2,20 @@
 pragma solidity 0.8.10;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {CToken, PriceOracle as IPriceOracle} from "@zoro-protocol/PriceOracle.sol";
 import {IPriceReceiver, PriceData} from "/IPriceReceiver.sol";
 import {IFeedRegistry, FeedData, MAX_DELTA_BASE, DEFAULT_MAX_DELTA_MANTISSA, DEFAULT_LIVE_PERIOD} from "/IFeedRegistry.sol";
 import {AggregatorV3Interface} from "chainlink/contracts/interfaces/AggregatorV3Interface.sol";
 
-contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
+contract PriceOracle is
+    IFeedRegistry,
+    IPriceReceiver,
+    IPriceOracle,
+    ReentrancyGuard,
+    Ownable
+{
     using Math for uint256;
 
     mapping(CToken => PriceData) priceData;
@@ -37,7 +44,7 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         AggregatorV3Interface feed,
         uint256 price,
         uint256 timestamp
-    ) external onlyOwner {
+    ) external onlyOwner nonReentrant {
         (PriceData memory oldPd, FeedData memory fd) = _getData(feed);
 
         _validateTimestamp(oldPd, timestamp);
@@ -58,7 +65,7 @@ contract PriceOracle is IFeedRegistry, IPriceReceiver, IPriceOracle, Ownable {
         CToken cToken,
         uint256 livePeriod,
         uint256 maxDeltaMantissa
-    ) external onlyOwner {
+    ) external onlyOwner nonReentrant {
         feedData[feed] = FeedData(cToken, livePeriod, maxDeltaMantissa);
 
         emit UpdateFeed(feed, cToken, livePeriod, maxDeltaMantissa);
