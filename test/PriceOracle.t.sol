@@ -82,4 +82,34 @@ contract PriceOracleTest is Test {
         uint256 expected = 1 * 1e17; // 10%
         assertEq(deltaMantissa, expected);
     }
+
+    function test_useDefault_defaultIfZero() public {
+        uint256 value = 0;
+        uint256 defaultValue = type(uint256).max;
+
+        uint256 result = oracle.exposed_useDefault(value, defaultValue);
+
+        uint256 expected = defaultValue;
+        assertEq(result, expected);
+    }
+
+    function test_useDefault_valueIfGtZero() public {
+        uint256 value = 10;
+        uint256 defaultValue = type(uint256).max;
+
+        uint256 result = oracle.exposed_useDefault(value, defaultValue);
+
+        uint256 expected = value;
+        assertEq(result, expected);
+    }
+
+    function test_useDefault_zeroIfBothZero() public {
+        uint256 value = 0;
+        uint256 defaultValue = 0;
+
+        uint256 result = oracle.exposed_useDefault(value, defaultValue);
+
+        uint256 expected = 0;
+        assertEq(result, expected);
+    }
 }
