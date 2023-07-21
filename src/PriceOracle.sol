@@ -88,7 +88,7 @@ contract PriceOracle is
         PriceData memory pd,
         FeedData memory fd,
         uint256 price
-    ) private returns (uint256) {
+    ) internal returns (uint256) {
         uint256 oldPrice = pd.price;
 
         uint256 deltaMantissa = _calculateDeltaMantissa(oldPrice, price);
@@ -113,7 +113,7 @@ contract PriceOracle is
     }
 
     function _getData(CToken cToken)
-        private
+        internal
         view
         returns (PriceData memory, FeedData memory)
     {
@@ -124,7 +124,7 @@ contract PriceOracle is
     }
 
     function _getData(AggregatorV3Interface feed)
-        private
+        internal
         view
         returns (PriceData memory, FeedData memory)
     {
@@ -135,7 +135,7 @@ contract PriceOracle is
     }
 
     function _validateLiveness(FeedData memory fd, uint256 timestamp)
-        private
+        internal
         view
     {
         uint256 livePeriod = _useDefault(fd.livePeriod, DEFAULT_LIVE_PERIOD);
@@ -145,18 +145,18 @@ contract PriceOracle is
     }
 
     function _validateTimestamp(PriceData memory pd, uint256 timestamp)
-        private
+        internal
         pure
     {
         if (timestamp < pd.timestamp) revert InvalidTimestamp(timestamp);
     }
 
-    function _validatePrice(uint256 price) private pure {
+    function _validatePrice(uint256 price) internal pure {
         if (price == 0) revert PriceIsZero();
     }
 
     function _calculateDeltaMantissa(uint256 oldPrice, uint256 newPrice)
-        private
+        internal
         pure
         returns (uint256)
     {
@@ -166,7 +166,7 @@ contract PriceOracle is
     }
 
     function _useDefault(uint256 value, uint256 defaultValue)
-        private
+        internal
         pure
         returns (uint256)
     {
