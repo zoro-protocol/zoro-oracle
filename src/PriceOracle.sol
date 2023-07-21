@@ -162,7 +162,7 @@ contract PriceOracle is
     {
         uint256 delta = newPrice.max(oldPrice) - newPrice.min(oldPrice);
 
-        return delta > 0 ? oldPrice.mulDiv(MAX_DELTA_BASE, delta) : 0;
+        return delta > 0 ? delta.mulDiv(MAX_DELTA_BASE, oldPrice) : 0;
     }
 
     function _useDefault(uint256 value, uint256 defaultValue)
