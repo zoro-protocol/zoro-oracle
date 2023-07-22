@@ -97,6 +97,11 @@ contract PriceOracle is
     ) internal returns (uint256) {
         uint256 oldPrice = pd.price;
 
+        // Do not enforce max delta if price is zero, occurs on first update
+        if (oldPrice == 0) {
+            return price;
+        }
+
         uint256 deltaMantissa = _calculateDeltaMantissa(oldPrice, price);
 
         uint256 maxDeltaMantissa = _useDefault(
