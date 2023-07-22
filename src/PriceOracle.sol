@@ -12,6 +12,7 @@ import {AggregatorV3Interface} from "chainlink/contracts/interfaces/AggregatorV3
 error InvalidTimestamp(uint256 timestamp);
 error PriceIsZero();
 error PriceIsStale(uint256 timestamp);
+error InvalidAddress();
 
 contract PriceOracle is
     IFeedRegistry,
@@ -45,6 +46,8 @@ contract PriceOracle is
         uint256 price,
         uint256 timestamp
     ) external onlyOwner nonReentrant {
+        _validateAddress(address(feed));
+
         (PriceData memory oldPd, FeedData memory fd) = _getData(feed);
 
         _validateTimestamp(oldPd, timestamp);
@@ -66,6 +69,9 @@ contract PriceOracle is
         uint256 livePeriod,
         uint256 maxDeltaMantissa
     ) external onlyOwner nonReentrant {
+        _validateAddress(address(feed));
+        _validateAddress(address(cToken));
+
         feedData[feed] = FeedData(cToken, livePeriod, maxDeltaMantissa);
 
         emit UpdateFeed(feed, cToken, livePeriod, maxDeltaMantissa);
@@ -142,6 +148,10 @@ contract PriceOracle is
 
         if (timestamp + livePeriod < block.timestamp)
             revert PriceIsStale(timestamp);
+    }
+
+    function _validateAddress(address addr) internal pure {
+        if (address(addr) == address(0)) revert InvalidAddress();
     }
 
     function _validateTimestamp(PriceData memory pd, uint256 timestamp)
