@@ -13,6 +13,10 @@ contract PriceOracleHarness is PriceOracle {
         _validateLiveness(fd, timestamp);
     }
 
+    function exposed_validateAddress(address addr) external pure {
+        _validateAddress(addr);
+    }
+
     function exposed_validateTimestamp(PriceData memory pd, uint256 timestamp)
         external
         pure
