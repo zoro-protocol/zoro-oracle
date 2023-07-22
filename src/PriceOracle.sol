@@ -43,6 +43,12 @@ contract PriceOracle is
 
     event PriceExceededDelta(uint256 oldPrice, uint256 price);
 
+    /**
+     * @notice Set the underlying price of the CToken mapped to the `feed`
+     * @notice CTokens are mapped to a `feed` with `setFeedData`
+     * @notice Caller can set prices pulled from a price feed with no knowledge
+     * of protocol implementation.
+     */
     function setUnderlyingPrice(
         AggregatorV3Interface feed,
         uint256 price,
@@ -63,7 +69,10 @@ contract PriceOracle is
     }
 
     /**
-     * @notice Set data parameters to zero for default values
+     * @notice Map a CToken to a price feed and configure the feed
+     * @notice Set `livePeriod` or `maxDeltaMantissa` to zero for default values
+     * @notice Must be called before prices can be set with `setUnderlyingPrice`
+     * @notice `feed` is an L1 price feed and `cToken` is an L2 CToken
      */
     function setFeedData(
         AggregatorV3Interface feed,
@@ -79,6 +88,10 @@ contract PriceOracle is
         emit UpdateFeed(feed, cToken, livePeriod, maxDeltaMantissa);
     }
 
+    /**
+     * @notice Get the underlying price of a CToken
+     * @notice Reverts if there is no feed, no price, or stale price data
+     */
     function getUnderlyingPrice(CToken cToken)
         external
         view
