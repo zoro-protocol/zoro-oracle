@@ -14,6 +14,7 @@ error PriceIsZero();
 error PriceIsStale(uint256 timestamp);
 error InvalidAddress();
 error FeedNotConfigured(AggregatorV3Interface feed);
+error PriceNotSet(CToken cToken);
 
 contract PriceOracle is
     IFeedRegistry,
@@ -129,7 +130,7 @@ contract PriceOracle is
         view
         returns (PriceData memory, FeedData memory)
     {
-        PriceData storage pd = priceData[cToken];
+        PriceData memory pd = _safeGetPriceData(cToken);
         FeedData storage fd = feedData[pd.feed];
 
         return (pd, fd);
@@ -166,6 +167,21 @@ contract PriceOracle is
         if (address(fd.cToken) == address(0)) revert FeedNotConfigured(feed);
 
         return fd;
+    }
+
+    function _safeGetPriceData(CToken cToken)
+        internal
+        view
+        returns (PriceData memory)
+    {
+        PriceData storage pd = priceData[cToken];
+
+        bool feedNotSet = address(pd.feed) == address(0);
+        bool priceNotSet = pd.price > 0;
+
+        if (feedNotSet || priceNotSet) revert PriceNotSet(cToken);
+
+        return pd;
     }
 
     function _validateAddress(address addr) internal pure {
