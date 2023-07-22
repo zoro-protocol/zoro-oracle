@@ -4,7 +4,8 @@ pragma solidity ^0.8.10;
 import {AggregatorV3Interface} from "chainlink/contracts/interfaces/AggregatorV3Interface.sol";
 import {CToken} from "@zoro-protocol/CToken.sol";
 import {FeedData} from "/IFeedRegistry.sol";
-import {InvalidTimestamp, PriceData, PriceIsStale, PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";
+import {InvalidAddress, InvalidTimestamp, PriceData, PriceIsStale} from "/PriceOracle.sol";
+import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract PriceOracleTest is Test {
@@ -113,6 +114,21 @@ contract PriceOracleTest is Test {
 
         uint256 expected = 0;
         assertEq(result, expected);
+    }
+
+    function test_validateAddress_revertIfAddressIsZero() public {
+        address addr = address(0);
+
+        vm.expectRevert(InvalidAddress.selector);
+        oracle.exposed_validateAddress(addr);
+    }
+
+    function test_validateAddress_noRevertIfAddressIsNonZero() public {
+        address addr = address(oracle);
+
+        oracle.exposed_validateAddress(addr);
+
+        assertTrue(true, "Must not revert");
     }
 
     function test_validateLiveness_revertIfPriceIsStale() public {
