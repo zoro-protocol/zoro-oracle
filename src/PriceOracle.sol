@@ -13,6 +13,7 @@ error InvalidTimestamp(uint256 timestamp);
 error PriceIsZero();
 error PriceIsStale(uint256 timestamp);
 error InvalidAddress();
+error FeedNotConfigured(AggregatorV3Interface feed);
 
 contract PriceOracle is
     IFeedRegistry,
@@ -139,7 +140,7 @@ contract PriceOracle is
         view
         returns (PriceData memory, FeedData memory)
     {
-        FeedData storage fd = feedData[feed];
+        FeedData memory fd = _safeGetFeedData(feed);
         PriceData storage pd = priceData[fd.cToken];
 
         return (pd, fd);
@@ -153,6 +154,18 @@ contract PriceOracle is
 
         if (timestamp + livePeriod < block.timestamp)
             revert PriceIsStale(timestamp);
+    }
+
+    function _safeGetFeedData(AggregatorV3Interface feed)
+        internal
+        view
+        returns (FeedData memory)
+    {
+        FeedData storage fd = feedData[feed];
+
+        if (address(fd.cToken) == address(0)) revert FeedNotConfigured(feed);
+
+        return fd;
     }
 
     function _validateAddress(address addr) internal pure {
