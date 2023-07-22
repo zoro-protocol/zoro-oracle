@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 pragma solidity 0.8.10;
 
-import "/PriceOracle.sol";
-import {PriceData} from "/IPriceReceiver.sol";
-import {FeedData} from "/IFeedRegistry.sol";
+import {AggregatorV3Interface, CToken, FeedData, PriceData, PriceOracle} from "/PriceOracle.sol";
 
 contract PriceOracleHarness is PriceOracle {
     function exposed_validateLiveness(FeedData memory fd, uint256 timestamp)
