@@ -11,6 +11,12 @@ contract PriceOracleHarness is PriceOracle {
         feedData[feed] = fd;
     }
 
+    function workaround_setPriceData(CToken cToken, PriceData calldata pd)
+        external
+    {
+        _priceData[cToken] = pd;
+    }
+
     function exposed_safeGetFeedData(AggregatorV3Interface feed)
         external
         view
