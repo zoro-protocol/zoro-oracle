@@ -17,6 +17,14 @@ contract PriceOracleHarness is PriceOracle {
         _priceData[cToken] = pd;
     }
 
+    function exposed_sanitizePrice(
+        PriceData memory pd,
+        FeedData memory fd,
+        uint256 price
+    ) external returns (uint256) {
+        return _sanitizePrice(pd, fd, price);
+    }
+
     function exposed_getDataFromCToken(CToken cToken)
         external
         view
