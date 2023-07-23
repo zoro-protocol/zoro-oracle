@@ -8,14 +8,14 @@ import {FeedNotConfigured} from "/PriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract PriceOracleTest is Test {
+contract SafeGetFeedData is Test {
     PriceOracle public oracle;
 
     function setUp() public {
         oracle = new PriceOracle();
     }
 
-    function test_safeGetFeedData_revertIfFeedNotSet() public {
+    function test_RevertIfFeedNotSet() public {
         AggregatorV3Interface feed = AggregatorV3Interface(address(0));
 
         vm.expectRevert(
@@ -24,7 +24,7 @@ contract PriceOracleTest is Test {
         oracle.exposed_safeGetFeedData(feed);
     }
 
-    function test_safeGetFeedData_revertIfCTokenNotSet() public {
+    function test_RevertIfCTokenNotSet() public {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
 
@@ -42,7 +42,7 @@ contract PriceOracleTest is Test {
         oracle.exposed_safeGetFeedData(feed);
     }
 
-    function test_safeGetFeedData_returnFeedData() public {
+    function test_ReturnFeedData() public {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
 

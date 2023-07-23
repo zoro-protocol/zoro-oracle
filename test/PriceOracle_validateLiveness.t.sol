@@ -7,14 +7,14 @@ import {PriceIsStale} from "/PriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract PriceOracleTest is Test {
+contract ValidateLiveness is Test {
     PriceOracle public oracle;
 
     function setUp() public {
         oracle = new PriceOracle();
     }
 
-    function test_validateLiveness_revertIfPriceIsStale() public {
+    function test_RevertIfPriceIsStale() public {
         CToken cToken = CToken(address(0));
         uint256 livePeriod = 12 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
@@ -29,7 +29,7 @@ contract PriceOracleTest is Test {
         oracle.exposed_validateLiveness(fd, timestamp);
     }
 
-    function test_validateLiveness_noRevertIfPriceIsLive() public {
+    function test_NoRevertIfPriceIsLive() public {
         CToken cToken = CToken(address(0));
         uint256 livePeriod = 12 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%

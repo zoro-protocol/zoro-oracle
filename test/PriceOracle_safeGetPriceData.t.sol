@@ -8,21 +8,21 @@ import {PriceData, PriceNotSet} from "/PriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract PriceOracleTest is Test {
+contract SafeGetPriceData is Test {
     PriceOracle public oracle;
 
     function setUp() public {
         oracle = new PriceOracle();
     }
 
-    function test_safeGetPriceData_revertIfPriceDataNotSet() public {
+    function test_RevertIfPriceDataNotSet() public {
         CToken cToken = CToken(address(0));
 
         vm.expectRevert(abi.encodeWithSelector(PriceNotSet.selector, cToken));
         oracle.exposed_safeGetPriceData(cToken);
     }
 
-    function test_safeGetPriceData_revertIfFeedNotSet() public {
+    function test_RevertIfFeedNotSet() public {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
@@ -38,7 +38,7 @@ contract PriceOracleTest is Test {
         oracle.exposed_safeGetPriceData(cToken);
     }
 
-    function test_safeGetPriceData_revertIfPriceIsZero() public {
+    function test_RevertIfPriceIsZero() public {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
@@ -55,7 +55,7 @@ contract PriceOracleTest is Test {
         oracle.exposed_safeGetPriceData(cToken);
     }
 
-    function test_safeGetPriceData_returnPriceData() public {
+    function test_ReturnPriceData() public {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 

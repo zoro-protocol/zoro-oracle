@@ -4,14 +4,14 @@ pragma solidity ^0.8.10;
 import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract PriceOracleTest is Test {
+contract UseDefault is Test {
     PriceOracle public oracle;
 
     function setUp() public {
         oracle = new PriceOracle();
     }
 
-    function test_useDefault_defaultIfZero() public {
+    function test_DefaultIfZero() public {
         uint256 value = 0;
         uint256 defaultValue = type(uint256).max;
 
@@ -21,7 +21,7 @@ contract PriceOracleTest is Test {
         assertEq(result, expected);
     }
 
-    function test_useDefault_valueIfGtZero() public {
+    function test_ValueIfGtZero() public {
         uint256 value = 10;
         uint256 defaultValue = type(uint256).max;
 
@@ -31,7 +31,7 @@ contract PriceOracleTest is Test {
         assertEq(result, expected);
     }
 
-    function test_useDefault_zeroIfBothZero() public {
+    function test_ZeroIfBothZero() public {
         uint256 value = 0;
         uint256 defaultValue = 0;
 

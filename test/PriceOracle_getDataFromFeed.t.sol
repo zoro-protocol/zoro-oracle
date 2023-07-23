@@ -8,14 +8,14 @@ import {PriceData} from "/PriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract PriceOracleTest is Test {
+contract GetDataFromFeed is Test {
     PriceOracle public oracle;
 
     function setUp() public {
         oracle = new PriceOracle();
     }
 
-    function test_getDataFromFeed_emptyPriceIfFeedHasNoPrices() public {
+    function test_EmptyPriceIfFeedHasNoPrices() public {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
 
@@ -39,7 +39,7 @@ contract PriceOracleTest is Test {
         assertEq(pd.timestamp, 0);
     }
 
-    function test_getDataFromFeed_returnPriceDataAndFeedData() public {
+    function test_ReturnPriceDataAndFeedData() public {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
 

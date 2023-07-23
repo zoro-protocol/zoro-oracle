@@ -4,14 +4,14 @@ pragma solidity ^0.8.10;
 import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract PriceOracleTest is Test {
+contract CalculateDeltaMantissa is Test {
     PriceOracle public oracle;
 
     function setUp() public {
         oracle = new PriceOracle();
     }
 
-    function test_calculateDeltaMantissa_zeroIfNoPriceChange() public {
+    function test_ZeroIfNoPriceChange() public {
         uint256 expectedDelta = 0;
 
         uint256 oldPrice = 100;
@@ -25,7 +25,7 @@ contract PriceOracleTest is Test {
         assertEq(deltaMantissa, expectedDelta);
     }
 
-    function test_calculateDeltaMantissa_positiveDeltaWhenNegativeChange()
+    function test_PositiveDeltaWhenNegativeChange()
         public
     {
         uint256 oldPrice = 100;
@@ -40,7 +40,7 @@ contract PriceOracleTest is Test {
         assertEq(deltaMantissa, expected);
     }
 
-    function test_calculateDeltaMantissa_positiveDeltaWhenPositiveChange()
+    function test_PositiveDeltaWhenPositiveChange()
         public
     {
         uint256 oldPrice = 100;

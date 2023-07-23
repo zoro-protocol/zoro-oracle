@@ -6,14 +6,14 @@ import {InvalidTimestamp, PriceData} from "/PriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract PriceOracleTest is Test {
+contract ValidateTimestamp is Test {
     PriceOracle public oracle;
 
     function setUp() public {
         oracle = new PriceOracle();
     }
 
-    function test_validateTimestamp_noRevertIfNew() public {
+    function test_NoRevertIfNew() public {
         AggregatorV3Interface feed = AggregatorV3Interface(address(0));
         uint256 oldPrice = 1e18;
         uint256 oldTimestamp = block.timestamp;
@@ -26,7 +26,7 @@ contract PriceOracleTest is Test {
         assertTrue(true, "Must not revert");
     }
 
-    function test_validateTimestamp_revertIfOld() public {
+    function test_RevertIfOld() public {
         AggregatorV3Interface feed = AggregatorV3Interface(address(0));
         uint256 oldPrice = 1e18;
         uint256 oldTimestamp = block.timestamp + 1 days;
