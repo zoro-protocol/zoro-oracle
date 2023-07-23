@@ -25,6 +25,14 @@ contract PriceOracleHarness is PriceOracle {
         return _safeGetFeedData(feed);
     }
 
+    function exposed_safeGetPriceData(CToken cToken)
+        external
+        view
+        returns (PriceData memory)
+    {
+        return _safeGetPriceData(cToken);
+    }
+
     function exposed_validateLiveness(FeedData memory fd, uint256 timestamp)
         external
         view
