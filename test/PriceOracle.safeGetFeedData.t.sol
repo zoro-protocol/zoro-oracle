@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import {AggregatorV3Interface} from "chainlink/contracts/interfaces/AggregatorV3Interface.sol";
-import {CToken} from "@zoro-protocol/CToken.sol";
+import {CToken} from "zoro-protocol/CToken.sol";
 import {FeedData} from "/IFeedRegistry.sol";
 import {FeedNotConfigured} from "/PriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.10;
 
-import {CToken} from "@zoro-protocol/CToken.sol";
+import {CToken} from "zoro-protocol/CToken.sol";
 import {FeedData} from "/IFeedRegistry.sol";
 import {PriceIsStale} from "/PriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";

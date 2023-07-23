@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 pragma solidity 0.8.10;
 
-import {CToken} from "@zoro-protocol/CToken.sol";
+import {CToken} from "zoro-protocol/CToken.sol";
 import {AggregatorV3Interface} from "chainlink/contracts/interfaces/AggregatorV3Interface.sol";
 
 uint256 constant MAX_DELTA_BASE = 1e18;
