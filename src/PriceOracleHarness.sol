@@ -17,6 +17,22 @@ contract PriceOracleHarness is PriceOracle {
         _priceData[cToken] = pd;
     }
 
+    function exposed_getDataFromCToken(CToken cToken)
+        external
+        view
+        returns (PriceData memory, FeedData memory)
+    {
+        return _getData(cToken);
+    }
+
+    function exposed_getDataFromFeed(AggregatorV3Interface feed)
+        external
+        view
+        returns (PriceData memory, FeedData memory)
+    {
+        return _getData(feed);
+    }
+
     function exposed_safeGetFeedData(AggregatorV3Interface feed)
         external
         view
