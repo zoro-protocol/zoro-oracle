@@ -25,8 +25,11 @@ contract PriceOracle is
 {
     using Math for uint256;
 
-    mapping(CToken => PriceData) priceData;
-    mapping(AggregatorV3Interface => FeedData) feedData;
+    // `public` so the configuration can be checked
+    mapping(AggregatorV3Interface => FeedData) public feedData;
+
+    // `internal` so all integrations must access through `getUnderlyingPrice`
+    mapping(CToken => PriceData) internal _priceData;
 
     event NewPrice(
         AggregatorV3Interface feed,
@@ -63,7 +66,7 @@ contract PriceOracle is
 
         uint256 newPrice = _sanitizePrice(oldPd, fd, price);
 
-        priceData[fd.cToken] = PriceData(feed, newPrice, timestamp);
+        _priceData[fd.cToken] = PriceData(feed, newPrice, timestamp);
 
         emit NewPrice(feed, newPrice, timestamp);
     }
@@ -155,7 +158,7 @@ contract PriceOracle is
         returns (PriceData memory, FeedData memory)
     {
         FeedData memory fd = _safeGetFeedData(feed);
-        PriceData storage pd = priceData[fd.cToken];
+        PriceData storage pd = _priceData[fd.cToken];
 
         return (pd, fd);
     }
@@ -187,7 +190,7 @@ contract PriceOracle is
         view
         returns (PriceData memory)
     {
-        PriceData storage pd = priceData[cToken];
+        PriceData storage pd = _priceData[cToken];
 
         bool feedNotSet = address(pd.feed) == address(0);
         bool priceNotSet = pd.price > 0;
