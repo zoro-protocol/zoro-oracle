@@ -265,5 +265,119 @@ contract PriceOracleTest is Test {
         assertEq(pd.timestamp, timestamp);
     }
 
-    function test_getData_emptyPriceDataForNewFeed() public {}
+    function test_getDataFromFeed_emptyPriceIfFeedHasNoPrices() public {
+        address feedAddress = makeAddr("feed");
+        AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
+
+        address cTokenAddress = makeAddr("cToken");
+        uint256 livePeriod = 24 hours;
+        uint256 maxDeltaMantissa = 1e17; // 10%
+        oracle.workaround_setFeedData(
+            feed,
+            FeedData(CToken(cTokenAddress), livePeriod, maxDeltaMantissa)
+        );
+
+        (PriceData memory pd, FeedData memory fd) = oracle
+            .exposed_getDataFromFeed(feed);
+
+        assertEq(address(fd.cToken), cTokenAddress);
+        assertEq(fd.livePeriod, livePeriod);
+        assertEq(fd.maxDeltaMantissa, maxDeltaMantissa);
+
+        assertEq(address(pd.feed), address(0));
+        assertEq(pd.price, 0);
+        assertEq(pd.timestamp, 0);
+    }
+
+    function test_getDataFromFeed_returnPriceDataAndFeedData() public {
+        address feedAddress = makeAddr("feed");
+        AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
+
+        address cTokenAddress = makeAddr("cToken");
+        CToken cToken = CToken(cTokenAddress);
+
+        uint256 livePeriod = 24 hours;
+        uint256 maxDeltaMantissa = 1e17; // 10%
+        oracle.workaround_setFeedData(
+            feed,
+            FeedData(cToken, livePeriod, maxDeltaMantissa)
+        );
+
+        uint256 price = 1e8; // $1 (8 decimals)
+        uint256 timestamp = block.timestamp;
+        oracle.workaround_setPriceData(
+            cToken,
+            PriceData(feed, price, timestamp)
+        );
+
+        (PriceData memory pd, FeedData memory fd) = oracle
+            .exposed_getDataFromFeed(feed);
+
+        assertEq(address(pd.feed), feedAddress);
+        assertEq(pd.price, price);
+        assertEq(pd.timestamp, timestamp);
+
+        assertEq(address(fd.cToken), cTokenAddress);
+        assertEq(fd.livePeriod, livePeriod);
+        assertEq(fd.maxDeltaMantissa, maxDeltaMantissa);
+    }
+
+    function test_getDataFromCToken_emptyFeedIfCTokenHasNoFeed() public {
+        address feedAddress = makeAddr("feed");
+        AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
+
+        address cTokenAddress = makeAddr("cToken");
+        CToken cToken = CToken(cTokenAddress);
+
+        uint256 price = 1e8; // $1 (8 decimals)
+        uint256 timestamp = block.timestamp;
+        oracle.workaround_setPriceData(
+            cToken,
+            PriceData(feed, price, timestamp)
+        );
+
+        (PriceData memory pd, FeedData memory fd) = oracle
+            .exposed_getDataFromCToken(cToken);
+
+        assertEq(address(pd.feed), feedAddress);
+        assertEq(pd.price, price);
+        assertEq(pd.timestamp, timestamp);
+
+        assertEq(address(fd.cToken), address(0));
+        assertEq(fd.livePeriod, 0);
+        assertEq(fd.maxDeltaMantissa, 0);
+    }
+
+    function test_getDataFromCToken_returnPriceDataAndFeedData() public {
+        address feedAddress = makeAddr("feed");
+        AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
+
+        address cTokenAddress = makeAddr("cToken");
+        CToken cToken = CToken(cTokenAddress);
+
+        uint256 livePeriod = 24 hours;
+        uint256 maxDeltaMantissa = 1e17; // 10%
+        oracle.workaround_setFeedData(
+            feed,
+            FeedData(cToken, livePeriod, maxDeltaMantissa)
+        );
+
+        uint256 price = 1e8; // $1 (8 decimals)
+        uint256 timestamp = block.timestamp;
+        oracle.workaround_setPriceData(
+            cToken,
+            PriceData(feed, price, timestamp)
+        );
+
+        (PriceData memory pd, FeedData memory fd) = oracle
+            .exposed_getDataFromCToken(cToken);
+
+        assertEq(address(pd.feed), feedAddress);
+        assertEq(pd.price, price);
+        assertEq(pd.timestamp, timestamp);
+
+        assertEq(address(fd.cToken), cTokenAddress);
+        assertEq(fd.livePeriod, livePeriod);
+        assertEq(fd.maxDeltaMantissa, maxDeltaMantissa);
+    }
 }
