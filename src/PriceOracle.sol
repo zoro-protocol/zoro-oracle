@@ -193,7 +193,7 @@ contract PriceOracle is
         PriceData storage pd = _priceData[cToken];
 
         bool feedNotSet = address(pd.feed) == address(0);
-        bool priceNotSet = pd.price > 0;
+        bool priceNotSet = pd.price == 0;
 
         if (feedNotSet || priceNotSet) revert PriceNotSet(cToken);
 
