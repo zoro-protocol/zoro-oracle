@@ -44,7 +44,7 @@ contract PriceOracle is
         uint256 maxDeltaMantissa
     );
 
-    event PriceExceededDelta(uint256 oldPrice, uint256 price);
+    event PriceExceededDelta(uint256 oldPrice, uint256 price, uint256 newPrice);
 
     /**
      * @notice Set the underlying price of the CToken mapped to the `feed`
@@ -131,11 +131,15 @@ contract PriceOracle is
 
         if (deltaMantissa <= maxDeltaMantissa) newPrice = price;
         else {
-            newPrice = price > oldPrice
-                ? oldPrice + maxDeltaMantissa
-                : oldPrice - maxDeltaMantissa;
+            bool deltaIsNegative = price < oldPrice;
 
-            emit PriceExceededDelta(oldPrice, price);
+            newPrice = _calculateNewPriceFromDelta(
+                oldPrice,
+                maxDeltaMantissa,
+                deltaIsNegative
+            );
+
+            emit PriceExceededDelta(oldPrice, price, newPrice);
         }
 
         return newPrice;
@@ -213,6 +217,20 @@ contract PriceOracle is
 
     function _validatePrice(uint256 price) internal pure {
         if (price == 0) revert PriceIsZero();
+    }
+
+    function _calculateNewPriceFromDelta(
+        uint256 oldPrice,
+        uint256 deltaMantissa,
+        bool deltaIsNegative
+    ) internal pure returns (uint256) {
+        uint256 newPriceDelta = oldPrice.mulDiv(deltaMantissa, MAX_DELTA_BASE);
+
+        uint256 newPrice = deltaIsNegative
+            ? oldPrice - newPriceDelta
+            : oldPrice + newPriceDelta;
+
+        return newPrice;
     }
 
     function _calculateDeltaMantissa(uint256 oldPrice, uint256 newPrice)
