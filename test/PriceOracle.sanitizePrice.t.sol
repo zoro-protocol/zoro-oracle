@@ -14,7 +14,7 @@ contract SanitizePrice is Test {
     event PriceExceededDelta(uint256 oldPrice, uint256 price, uint256 newPrice);
 
     function setUp() public {
-        oracle = new PriceOracle();
+        oracle = new PriceOracle(msg.sender, msg.sender, msg.sender);
     }
 
     function test_IgnoreMaxDeltaIfOldPriceIsZero() public {

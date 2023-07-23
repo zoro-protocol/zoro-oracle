@@ -12,7 +12,7 @@ contract SafeGetPriceData is Test {
     PriceOracle public oracle;
 
     function setUp() public {
-        oracle = new PriceOracle();
+        oracle = new PriceOracle(msg.sender, msg.sender, msg.sender);
     }
 
     function test_RevertIfPriceDataNotSet() public {

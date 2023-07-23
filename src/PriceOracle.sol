@@ -21,9 +21,13 @@ contract PriceOracle is
     IPriceReceiver,
     IPriceOracle,
     ReentrancyGuard,
-    Ownable
+    AccessControl
 {
     using Math for uint256;
+
+    bytes32 public constant PRICE_PUBLISHER_ROLE =
+        keccak256("PRICE_PUBLISHER_ROLE");
+    bytes32 public constant FEED_ADMIN_ROLE = keccak256("FEED_ADMIN_ROLE");
 
     // `public` so the configuration can be checked
     mapping(AggregatorV3Interface => FeedData) public feedData;
@@ -47,6 +51,20 @@ contract PriceOracle is
     event PriceExceededDelta(uint256 oldPrice, uint256 price, uint256 newPrice);
 
     /**
+     * @param pricePublisher Account that publishes new prices from Chainlink
+     * @param feedAdmin Account that manages settings for each price feed
+     * @param defaultAdmin Account that can grant and revoke all roles
+     */
+    constructor(
+        address pricePublisher,
+        address feedAdmin,
+        address defaultAdmin
+    ) AccessControl(6 hours, defaultAdmin) {
+        _grantRole(PRICE_PUBLISHER_ROLE, pricePublisher);
+        _grantRole(FEED_ADMIN_ROLE, feedAdmin);
+    }
+
+    /**
      * @notice Set the underlying price of the CToken mapped to the `feed`
      * @notice CTokens are mapped to a `feed` with `setFeedData`
      * @notice Caller can set prices pulled from a price feed with no knowledge
@@ -56,7 +74,7 @@ contract PriceOracle is
         AggregatorV3Interface feed,
         uint256 price,
         uint256 timestamp
-    ) external onlyOwner nonReentrant {
+    ) external onlyRole(PRICE_PUBLISHER_ROLE) nonReentrant {
         _validateAddress(address(feed));
 
         (PriceData memory oldPd, FeedData memory fd) = _getData(feed);
@@ -82,7 +100,7 @@ contract PriceOracle is
         CToken cToken,
         uint256 livePeriod,
         uint256 maxDeltaMantissa
-    ) external onlyOwner nonReentrant {
+    ) external onlyRole(FEED_ADMIN_ROLE) nonReentrant {
         _validateAddress(address(feed));
         _validateAddress(address(cToken));
 

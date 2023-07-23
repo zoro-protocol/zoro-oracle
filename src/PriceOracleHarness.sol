@@ -4,6 +4,12 @@ pragma solidity 0.8.10;
 import {AggregatorV3Interface, CToken, FeedData, PriceData, PriceOracle} from "/PriceOracle.sol";
 
 contract PriceOracleHarness is PriceOracle {
+    constructor(
+        address pricePublisher,
+        address feedAdmin,
+        address defaultAdmin
+    ) PriceOracle(pricePublisher, feedAdmin, defaultAdmin) {}
+
     function workaround_setFeedData(
         AggregatorV3Interface feed,
         FeedData calldata fd
