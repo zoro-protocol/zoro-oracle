@@ -5,7 +5,7 @@ import {AccessControlDefaultAdminRules as AccessControl} from "openzeppelin/cont
 import {ReentrancyGuard} from "openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Math} from "openzeppelin/contracts/utils/math/Math.sol";
 import {CToken, PriceOracle as IPriceOracle} from "zoro-protocol/PriceOracle.sol";
-import {IPriceReceiver, PriceData} from "/IPriceReceiver.sol";
+import {IPriceSubscriber, PriceData} from "/IPriceSubscriber.sol";
 import {IFeedRegistry, FeedData, MAX_DELTA_BASE, DEFAULT_MAX_DELTA_MANTISSA, DEFAULT_LIVE_PERIOD} from "/IFeedRegistry.sol";
 import {AggregatorV3Interface} from "chainlink/contracts/interfaces/AggregatorV3Interface.sol";
 
@@ -18,7 +18,7 @@ error PriceNotSet(CToken cToken);
 
 contract PriceOracle is
     IFeedRegistry,
-    IPriceReceiver,
+    IPriceSubscriber,
     IPriceOracle,
     ReentrancyGuard,
     AccessControl

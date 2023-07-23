@@ -10,7 +10,7 @@ struct PriceData {
     uint256 timestamp;
 }
 
-interface IPriceReceiver {
+interface IPriceSubscriber {
     function setUnderlyingPrice(
         AggregatorV3Interface feed,
         uint256 price,
