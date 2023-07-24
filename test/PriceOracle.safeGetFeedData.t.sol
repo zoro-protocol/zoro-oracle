@@ -29,11 +29,17 @@ contract SafeGetFeedData is Test {
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
 
         address cTokenAddress = address(0);
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
         oracle.workaround_setFeedData(
             feed,
-            FeedData(CToken(cTokenAddress), livePeriod, maxDeltaMantissa)
+            FeedData(
+                CToken(cTokenAddress),
+                decimals,
+                livePeriod,
+                maxDeltaMantissa
+            )
         );
 
         vm.expectRevert(
@@ -47,11 +53,17 @@ contract SafeGetFeedData is Test {
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
 
         address cTokenAddress = makeAddr("cToken");
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
         oracle.workaround_setFeedData(
             feed,
-            FeedData(CToken(cTokenAddress), livePeriod, maxDeltaMantissa)
+            FeedData(
+                CToken(cTokenAddress),
+                decimals,
+                livePeriod,
+                maxDeltaMantissa
+            )
         );
 
         FeedData memory fd = oracle.exposed_safeGetFeedData(feed);

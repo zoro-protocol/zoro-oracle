@@ -28,9 +28,15 @@ contract SanitizePrice is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
-        FeedData memory fd = FeedData(cToken, livePeriod, maxDeltaMantissa);
+        FeedData memory fd = FeedData(
+            cToken,
+            decimals,
+            livePeriod,
+            maxDeltaMantissa
+        );
 
         uint256 price = 1e8; // $1 (8 decimals)
         uint256 newPrice = oracle.exposed_sanitizePrice(pd, fd, price);
@@ -49,9 +55,15 @@ contract SanitizePrice is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 0;
-        FeedData memory fd = FeedData(cToken, livePeriod, maxDeltaMantissa);
+        FeedData memory fd = FeedData(
+            cToken,
+            decimals,
+            livePeriod,
+            maxDeltaMantissa
+        );
 
         // Price change is under the default max delta
         uint256 normalPrice = 109 * 1e6; // 9% increase
@@ -66,7 +78,11 @@ contract SanitizePrice is Test {
         vm.expectEmit(true, true, true, true);
         emit PriceExceededDelta(oldPrice, abnormalPrice, expectedPrice);
 
-        uint256 cappedPrice = oracle.exposed_sanitizePrice(pd, fd, abnormalPrice);
+        uint256 cappedPrice = oracle.exposed_sanitizePrice(
+            pd,
+            fd,
+            abnormalPrice
+        );
 
         assertEq(cappedPrice, expectedPrice);
     }
@@ -82,9 +98,15 @@ contract SanitizePrice is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
-        FeedData memory fd = FeedData(cToken, livePeriod, maxDeltaMantissa);
+        FeedData memory fd = FeedData(
+            cToken,
+            decimals,
+            livePeriod,
+            maxDeltaMantissa
+        );
 
         // Price change is under the default max delta
         uint256 normalPrice = 109 * 1e6; // 9% increase
@@ -99,7 +121,11 @@ contract SanitizePrice is Test {
         vm.expectEmit(true, true, true, true);
         emit PriceExceededDelta(oldPrice, abnormalPrice, expectedPrice);
 
-        uint256 cappedPrice = oracle.exposed_sanitizePrice(pd, fd, abnormalPrice);
+        uint256 cappedPrice = oracle.exposed_sanitizePrice(
+            pd,
+            fd,
+            abnormalPrice
+        );
 
         assertEq(cappedPrice, expectedPrice);
     }

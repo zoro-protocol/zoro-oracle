@@ -28,9 +28,15 @@ contract SetUnderlyingPrice is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
-        FeedData memory fd = FeedData(cToken, livePeriod, maxDeltaMantissa);
+        FeedData memory fd = FeedData(
+            cToken,
+            decimals,
+            livePeriod,
+            maxDeltaMantissa
+        );
 
         oracle.workaround_setFeedData(feed, fd);
 
@@ -49,9 +55,15 @@ contract SetUnderlyingPrice is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
-        FeedData memory fd = FeedData(cToken, livePeriod, maxDeltaMantissa);
+        FeedData memory fd = FeedData(
+            cToken,
+            decimals,
+            livePeriod,
+            maxDeltaMantissa
+        );
 
         oracle.workaround_setFeedData(feed, fd);
 
@@ -70,9 +82,15 @@ contract SetUnderlyingPrice is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
-        FeedData memory fd = FeedData(cToken, livePeriod, maxDeltaMantissa);
+        FeedData memory fd = FeedData(
+            cToken,
+            decimals,
+            livePeriod,
+            maxDeltaMantissa
+        );
 
         oracle.workaround_setFeedData(feed, fd);
 
@@ -94,9 +112,15 @@ contract SetUnderlyingPrice is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
-        FeedData memory fd = FeedData(cToken, livePeriod, maxDeltaMantissa);
+        FeedData memory fd = FeedData(
+            cToken,
+            decimals,
+            livePeriod,
+            maxDeltaMantissa
+        );
 
         oracle.workaround_setFeedData(feed, fd);
 

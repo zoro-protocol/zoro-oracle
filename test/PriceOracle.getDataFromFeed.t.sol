@@ -20,11 +20,17 @@ contract GetDataFromFeed is Test {
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
 
         address cTokenAddress = makeAddr("cToken");
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
         oracle.workaround_setFeedData(
             feed,
-            FeedData(CToken(cTokenAddress), livePeriod, maxDeltaMantissa)
+            FeedData(
+                CToken(cTokenAddress),
+                decimals,
+                livePeriod,
+                maxDeltaMantissa
+            )
         );
 
         (PriceData memory pd, FeedData memory fd) = oracle
@@ -46,11 +52,12 @@ contract GetDataFromFeed is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
         oracle.workaround_setFeedData(
             feed,
-            FeedData(cToken, livePeriod, maxDeltaMantissa)
+            FeedData(cToken, decimals, livePeriod, maxDeltaMantissa)
         );
 
         uint256 price = 1e8; // $1 (8 decimals)

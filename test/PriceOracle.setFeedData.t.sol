@@ -26,12 +26,19 @@ contract SetFeedData is Test {
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
 
         vm.expectRevert();
         hoax(msg.sender);
-        oracle.setFeedData(feed, cToken, livePeriod, maxDeltaMantissa);
+        oracle.setFeedData(
+            feed,
+            cToken,
+            decimals,
+            livePeriod,
+            maxDeltaMantissa
+        );
     }
 
     function test_EmitOnSuccess() public {
@@ -39,12 +46,19 @@ contract SetFeedData is Test {
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
 
         vm.expectEmit();
         emit UpdateFeed(feed, cToken, livePeriod, maxDeltaMantissa);
-        oracle.setFeedData(feed, cToken, livePeriod, maxDeltaMantissa);
+        oracle.setFeedData(
+            feed,
+            cToken,
+            decimals,
+            livePeriod,
+            maxDeltaMantissa
+        );
     }
 
     function test_SetFeedData() public {
@@ -52,18 +66,27 @@ contract SetFeedData is Test {
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
+        uint256 decimals = 8;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
 
-        oracle.setFeedData(feed, cToken, livePeriod, maxDeltaMantissa);
+        oracle.setFeedData(
+            feed,
+            cToken,
+            decimals,
+            livePeriod,
+            maxDeltaMantissa
+        );
 
         (
             CToken fdCtoken,
+            uint256 fdDecimals,
             uint256 fdLivePeriod,
             uint256 fdMaxDeltaMantissa
         ) = oracle.feedData(feed);
 
         assertEq(address(fdCtoken), address(cToken));
+        assertEq(fdDecimals, decimals);
         assertEq(fdLivePeriod, livePeriod);
         assertEq(fdMaxDeltaMantissa, maxDeltaMantissa);
     }
