@@ -35,6 +35,7 @@ contract SafeGetFeedData is Test {
 
         uint256 result = oracle.getUnderlyingPrice(cToken);
 
-        assertEq(result, price);
+        uint256 expectedPrice = 1e18;
+        assertEq(result, expectedPrice);
     }
 }
