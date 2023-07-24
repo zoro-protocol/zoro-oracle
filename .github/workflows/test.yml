@@ -17,10 +17,12 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Run NPM install
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 18
+
+      - name: Run NPM install
+        run: npm install
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
