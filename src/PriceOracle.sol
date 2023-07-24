@@ -100,13 +100,19 @@ contract PriceOracle is
     function setFeedData(
         AggregatorV3Interface feed,
         CToken cToken,
+        uint256 decimals,
         uint256 livePeriod,
         uint256 maxDeltaMantissa
     ) external onlyRole(FEED_ADMIN_ROLE) nonReentrant {
         _validateAddress(address(feed));
         _validateAddress(address(cToken));
 
-        feedData[feed] = FeedData(cToken, livePeriod, maxDeltaMantissa);
+        feedData[feed] = FeedData(
+            cToken,
+            decimals,
+            livePeriod,
+            maxDeltaMantissa
+        );
 
         emit UpdateFeed(feed, cToken, livePeriod, maxDeltaMantissa);
     }
@@ -125,7 +131,7 @@ contract PriceOracle is
 
         _validateLiveness(fd, pd.timestamp);
 
-        uint256 priceMantissa = _convertDecimals(pd.price, 8);
+        uint256 priceMantissa = _convertDecimals(pd.price, fd.decimals);
 
         return priceMantissa;
     }
