@@ -37,7 +37,7 @@ jobs:
 
       - name: Run Forge tests
         run: |
-          forge test -vvv
+          forge coverage --report lcov
         id: test
 
       - name: Upload coverage reports to Codecov
