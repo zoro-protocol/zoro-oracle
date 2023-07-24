@@ -6,7 +6,7 @@ import {ReentrancyGuard} from "openzeppelin/contracts/security/ReentrancyGuard.s
 import {Math} from "openzeppelin/contracts/utils/math/Math.sol";
 import {CToken, PriceOracle as IPriceOracle} from "zoro-protocol/PriceOracle.sol";
 import {IPriceSubscriber, PriceData} from "/IPriceSubscriber.sol";
-import {IFeedRegistry, FeedData, MAX_DELTA_BASE, DEFAULT_MAX_DELTA_MANTISSA, DEFAULT_LIVE_PERIOD} from "/IFeedRegistry.sol";
+import {IFeedRegistry, FeedData, MAX_DELTA_BASE, DEFAULT_FEED_DECIMALS, DEFAULT_MAX_DELTA_MANTISSA, DEFAULT_LIVE_PERIOD} from "/IFeedRegistry.sol";
 import {AggregatorV3Interface} from "chainlink/contracts/interfaces/AggregatorV3Interface.sol";
 
 error InvalidTimestamp(uint256 timestamp);
@@ -28,6 +28,8 @@ contract PriceOracle is
     bytes32 public constant PRICE_PUBLISHER_ROLE =
         keccak256("PRICE_PUBLISHER_ROLE");
     bytes32 public constant FEED_ADMIN_ROLE = keccak256("FEED_ADMIN_ROLE");
+
+    uint256 public constant PRICE_MANTISSA_BASE = 1e18;
 
     // `public` so the configuration can be checked
     mapping(AggregatorV3Interface => FeedData) public feedData;
@@ -123,7 +125,9 @@ contract PriceOracle is
 
         _validateLiveness(fd, pd.timestamp);
 
-        return pd.price;
+        uint256 priceMantissa = _convertDecimals(pd.price, 8);
+
+        return priceMantissa;
     }
 
     function _sanitizePrice(
@@ -259,6 +263,18 @@ contract PriceOracle is
         uint256 delta = newPrice.max(oldPrice) - newPrice.min(oldPrice);
 
         return delta > 0 ? delta.mulDiv(MAX_DELTA_BASE, oldPrice) : 0;
+    }
+
+    function _convertDecimals(uint256 value, uint256 decimals)
+        internal
+        pure
+        returns (uint256)
+    {
+        return
+            value.mulDiv(
+                PRICE_MANTISSA_BASE,
+                10**_useDefault(decimals, DEFAULT_FEED_DECIMALS)
+            );
     }
 
     function _useDefault(uint256 value, uint256 defaultValue)
