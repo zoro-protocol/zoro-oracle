@@ -22,6 +22,11 @@ jobs:
         with:
           version: nightly
 
+      - name: Run NPM install
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
       - name: Run Forge build
         run: |
           forge --version
