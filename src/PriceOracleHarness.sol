@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 pragma solidity 0.8.10;
 
-import {AggregatorV3Interface, CToken, FeedData, PriceData, PriceOracle} from "/PriceOracle.sol";
+import {AggregatorV3Interface, CToken, FeedData, PriceData, PriceOracle} from "src/PriceOracle.sol";
 
 contract PriceOracleHarness is PriceOracle {
     constructor(
