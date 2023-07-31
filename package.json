@@ -1,4 +1,7 @@
 {
+  "scripts": {
+      "forge": ". ./.env && $FOUNDRY_ZKSYNC_BIN"
+  },
   "devDependencies": {
     "@chainlink/contracts": "^0.6.1"
   }
