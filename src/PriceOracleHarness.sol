@@ -110,12 +110,13 @@ contract PriceOracleHarness is PriceOracle {
             );
     }
 
-    function exposed_convertDecimals(uint256 value, uint256 decimals)
-        external
-        pure
-        returns (uint256)
-    {
-        return _convertDecimals(value, decimals);
+    function exposed_convertDecimalsForComptroller(
+        uint256 value,
+        uint256 decimals,
+        uint256 underlyingDecimals
+    ) external pure returns (uint256) {
+        return
+            _convertDecimalsForComptroller(value, decimals, underlyingDecimals);
     }
 
     function exposed_useDefault(uint256 value, uint256 defaultValue)
