@@ -6,7 +6,7 @@ import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/security/Ree
 import {Math} from "lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {CToken, PriceOracle as IPriceOracle} from "lib/zoro-protocol/contracts/PriceOracle.sol";
 import {IPriceSubscriber, PriceData} from "src/IPriceSubscriber.sol";
-import {IFeedRegistry, FeedData, MAX_DELTA_BASE, DEFAULT_FEED_DECIMALS, DEFAULT_MAX_DELTA_MANTISSA, DEFAULT_LIVE_PERIOD} from "src/IFeedRegistry.sol";
+import {IFeedRegistry, FeedData, MAX_DELTA_BASE, DEFAULT_MAX_DELTA_MANTISSA, DEFAULT_LIVE_PERIOD} from "src/IFeedRegistry.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 error InvalidTimestamp(uint256 timestamp);
@@ -29,7 +29,9 @@ contract PriceOracle is
         keccak256("PRICE_PUBLISHER_ROLE");
     bytes32 public constant FEED_ADMIN_ROLE = keccak256("FEED_ADMIN_ROLE");
 
-    uint256 public constant PRICE_MANTISSA_BASE = 1e18;
+    // Comptroller needs prices in the format: ${raw price} * 1e36 / baseUnit
+    uint256 public constant PRICE_MANTISSA_DECIMALS = 36;
+    uint256 private constant _MAX_UINT_DIGITS = 77;
 
     // `public` so the configuration can be checked
     mapping(AggregatorV3Interface => FeedData) public feedData;
@@ -101,6 +103,7 @@ contract PriceOracle is
         AggregatorV3Interface feed,
         CToken cToken,
         uint256 decimals,
+        uint256 underlyingDecimals,
         uint256 livePeriod,
         uint256 maxDeltaMantissa
     ) external onlyRole(FEED_ADMIN_ROLE) nonReentrant {
@@ -110,6 +113,7 @@ contract PriceOracle is
         feedData[feed] = FeedData(
             cToken,
             decimals,
+            underlyingDecimals,
             livePeriod,
             maxDeltaMantissa
         );
@@ -131,7 +135,11 @@ contract PriceOracle is
 
         _validateLiveness(fd, pd.timestamp);
 
-        uint256 priceMantissa = _convertDecimals(pd.price, fd.decimals);
+        uint256 priceMantissa = _convertDecimalsForComptroller(
+            pd.price,
+            fd.decimals,
+            fd.underlyingDecimals
+        );
 
         return priceMantissa;
     }
@@ -271,16 +279,37 @@ contract PriceOracle is
         return delta > 0 ? delta.mulDiv(MAX_DELTA_BASE, oldPrice) : 0;
     }
 
-    function _convertDecimals(uint256 value, uint256 decimals)
-        internal
-        pure
-        returns (uint256)
-    {
-        return
-            value.mulDiv(
-                PRICE_MANTISSA_BASE,
-                10**_useDefault(decimals, DEFAULT_FEED_DECIMALS)
-            );
+    /**
+     * @notice Comptroller expects the format: `${raw price} * 1e36 / baseUnit`
+     * The `baseUnit` of an asset is the smallest whole unit of that asset.
+     * E.g. The `baseUnit` of ETH is 1e18 and the price feed is 8 decimals:
+     * `price * 1e(36 - 8)/baseUnit`
+     *
+     * @dev There are no default values for `decimals` and `underlyingDecimals`
+     * because zero is a valid value.
+     */
+    function _convertDecimalsForComptroller(
+        uint256 value,
+        uint256 decimals,
+        uint256 underlyingDecimals
+    ) internal pure returns (uint256) {
+        // Net out all decimals before scaling to maximize precision
+        uint256 totalDecimals = decimals + underlyingDecimals;
+        uint256 decimalDelta = totalDecimals.max(PRICE_MANTISSA_DECIMALS) -
+            totalDecimals.min(PRICE_MANTISSA_DECIMALS);
+
+        // Handle decimals that normalize all possible `uint` values to zero
+        if (decimalDelta > _MAX_UINT_DIGITS) return 0;
+
+        // Remaining decimal values will not cause an overflow
+        uint256 decimalDeltaBase = 10**decimalDelta;
+
+        // Will not overflow if condition for multiplication is held
+        uint256 normalizedValue = totalDecimals < PRICE_MANTISSA_DECIMALS
+            ? value * decimalDeltaBase
+            : value / decimalDeltaBase;
+
+        return normalizedValue;
     }
 
     function _useDefault(uint256 value, uint256 defaultValue)

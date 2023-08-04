@@ -49,11 +49,18 @@ contract GetDataFromCToken is Test {
         CToken cToken = CToken(cTokenAddress);
 
         uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
         oracle.workaround_setFeedData(
             feed,
-            FeedData(cToken, decimals, livePeriod, maxDeltaMantissa)
+            FeedData(
+                cToken,
+                decimals,
+                underlyingDecimals,
+                livePeriod,
+                maxDeltaMantissa
+            )
         );
 
         uint256 price = 1e8; // $1 (8 decimals)

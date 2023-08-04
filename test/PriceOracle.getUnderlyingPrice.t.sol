@@ -27,11 +27,13 @@ contract SafeGetFeedData is Test {
         CToken cToken = CToken(cTokenAddress);
 
         uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
         FeedData memory fd = FeedData(
             cToken,
             decimals,
+            underlyingDecimals,
             livePeriod,
             maxDeltaMantissa
         );
