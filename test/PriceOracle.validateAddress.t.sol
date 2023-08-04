@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.10;
 
-import {InvalidAddress} from "/PriceOracle.sol";
-import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";
+import {InvalidAddress} from "src/PriceOracle.sol";
+import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract ValidateAddress is Test {
