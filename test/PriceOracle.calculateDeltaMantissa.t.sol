@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.10;
 
-import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";
+import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract CalculateDeltaMantissa is Test {
@@ -25,9 +25,7 @@ contract CalculateDeltaMantissa is Test {
         assertEq(deltaMantissa, expectedDelta);
     }
 
-    function test_PositiveDeltaWhenNegativeChange()
-        public
-    {
+    function test_PositiveDeltaWhenNegativeChange() public {
         uint256 oldPrice = 100;
         uint256 newPrice = 90;
 
@@ -40,9 +38,7 @@ contract CalculateDeltaMantissa is Test {
         assertEq(deltaMantissa, expected);
     }
 
-    function test_PositiveDeltaWhenPositiveChange()
-        public
-    {
+    function test_PositiveDeltaWhenPositiveChange() public {
         uint256 oldPrice = 100;
         uint256 newPrice = 110;
 

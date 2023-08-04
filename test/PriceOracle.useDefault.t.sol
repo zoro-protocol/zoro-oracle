@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.10;
 
-import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";
+import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract UseDefault is Test {

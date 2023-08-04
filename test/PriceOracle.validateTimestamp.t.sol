@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.10;
 
-import {AggregatorV3Interface} from "chainlink/contracts/interfaces/AggregatorV3Interface.sol";
-import {InvalidTimestamp, PriceData} from "/PriceOracle.sol";
-import {PriceOracleHarness as PriceOracle} from "/PriceOracleHarness.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {InvalidTimestamp, PriceData} from "src/PriceOracle.sol";
+import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract ValidateTimestamp is Test {
