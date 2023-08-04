@@ -12,6 +12,7 @@ uint256 constant DEFAULT_LIVE_PERIOD = 30 hours;
 struct FeedData {
     CToken cToken;
     uint256 decimals;
+    uint256 underlyingDecimals;
     uint256 livePeriod;
     uint256 maxDeltaMantissa;
 }
@@ -21,6 +22,7 @@ interface IFeedRegistry {
         AggregatorV3Interface feed,
         CToken cToken,
         uint256 decimals,
+        uint256 underlyingDecimals,
         uint256 livePeriod,
         uint256 maxDeltaMantissa
     ) external;

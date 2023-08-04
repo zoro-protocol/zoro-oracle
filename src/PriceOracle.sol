@@ -29,7 +29,8 @@ contract PriceOracle is
         keccak256("PRICE_PUBLISHER_ROLE");
     bytes32 public constant FEED_ADMIN_ROLE = keccak256("FEED_ADMIN_ROLE");
 
-    uint256 public constant PRICE_MANTISSA_BASE = 1e18;
+    // Comptroller needs prices in the format: ${raw price} * 1e36 / baseUnit
+    uint256 public constant PRICE_MANTISSA_BASE = 1e36;
 
     // `public` so the configuration can be checked
     mapping(AggregatorV3Interface => FeedData) public feedData;
@@ -101,6 +102,7 @@ contract PriceOracle is
         AggregatorV3Interface feed,
         CToken cToken,
         uint256 decimals,
+        uint256 underlyingDecimals,
         uint256 livePeriod,
         uint256 maxDeltaMantissa
     ) external onlyRole(FEED_ADMIN_ROLE) nonReentrant {
@@ -110,6 +112,7 @@ contract PriceOracle is
         feedData[feed] = FeedData(
             cToken,
             decimals,
+            underlyingDecimals,
             livePeriod,
             maxDeltaMantissa
         );
@@ -131,7 +134,11 @@ contract PriceOracle is
 
         _validateLiveness(fd, pd.timestamp);
 
-        uint256 priceMantissa = _convertDecimals(pd.price, fd.decimals);
+        uint256 priceMantissa = _convertDecimalsForComptroller(
+            pd.price,
+            fd.decimals,
+            fd.underlyingDecimals
+        );
 
         return priceMantissa;
     }
@@ -271,16 +278,26 @@ contract PriceOracle is
         return delta > 0 ? delta.mulDiv(MAX_DELTA_BASE, oldPrice) : 0;
     }
 
-    function _convertDecimals(uint256 value, uint256 decimals)
-        internal
-        pure
-        returns (uint256)
-    {
-        return
-            value.mulDiv(
-                PRICE_MANTISSA_BASE,
-                10**_useDefault(decimals, DEFAULT_FEED_DECIMALS)
-            );
+    /**
+     * @notice Comptroller expects the format: `${raw price} * 1e36 / baseUnit`
+     * The `baseUnit` of an asset is the smallest whole unit of that asset.
+     * E.g. The `baseUnit` of ETH is 1e18 and the price feed is 8 decimals:
+     * `price * 1e(36 - 8)/baseUnit`
+     */
+    function _convertDecimalsForComptroller(
+        uint256 value,
+        uint256 decimals,
+        uint256 underlyingDecimals
+    ) internal pure returns (uint256) {
+        uint256 normalizedValue = value.mulDiv(
+            PRICE_MANTISSA_BASE,
+            10**_useDefault(decimals, DEFAULT_FEED_DECIMALS)
+        );
+
+        uint256 valueInExpectedDecimals = normalizedValue /
+            10**underlyingDecimals;
+
+        return valueInExpectedDecimals;
     }
 
     function _useDefault(uint256 value, uint256 defaultValue)
