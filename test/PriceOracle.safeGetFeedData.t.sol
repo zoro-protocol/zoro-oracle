@@ -30,6 +30,7 @@ contract SafeGetFeedData is Test {
 
         address cTokenAddress = address(0);
         uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
         oracle.workaround_setFeedData(
@@ -37,6 +38,7 @@ contract SafeGetFeedData is Test {
             FeedData(
                 CToken(cTokenAddress),
                 decimals,
+                underlyingDecimals,
                 livePeriod,
                 maxDeltaMantissa
             )
@@ -54,6 +56,7 @@ contract SafeGetFeedData is Test {
 
         address cTokenAddress = makeAddr("cToken");
         uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
         oracle.workaround_setFeedData(
@@ -61,6 +64,7 @@ contract SafeGetFeedData is Test {
             FeedData(
                 CToken(cTokenAddress),
                 decimals,
+                underlyingDecimals,
                 livePeriod,
                 maxDeltaMantissa
             )

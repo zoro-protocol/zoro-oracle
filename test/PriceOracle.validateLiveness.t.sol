@@ -17,11 +17,13 @@ contract ValidateLiveness is Test {
     function test_RevertIfPriceIsStale() public {
         CToken cToken = CToken(address(0));
         uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
         uint256 livePeriod = 12 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
         FeedData memory fd = FeedData(
             cToken,
             decimals,
+            underlyingDecimals,
             livePeriod,
             maxDeltaMantissa
         );
@@ -38,11 +40,13 @@ contract ValidateLiveness is Test {
     function test_NoRevertIfPriceIsLive() public {
         CToken cToken = CToken(address(0));
         uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
         uint256 livePeriod = 12 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
         FeedData memory fd = FeedData(
             cToken,
             decimals,
+            underlyingDecimals,
             livePeriod,
             maxDeltaMantissa
         );

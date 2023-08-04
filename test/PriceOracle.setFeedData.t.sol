@@ -27,6 +27,7 @@ contract SetFeedData is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
         uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
 
@@ -36,6 +37,7 @@ contract SetFeedData is Test {
             feed,
             cToken,
             decimals,
+            underlyingDecimals,
             livePeriod,
             maxDeltaMantissa
         );
@@ -47,6 +49,7 @@ contract SetFeedData is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
         uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
 
@@ -56,6 +59,7 @@ contract SetFeedData is Test {
             feed,
             cToken,
             decimals,
+            underlyingDecimals,
             livePeriod,
             maxDeltaMantissa
         );
@@ -67,6 +71,7 @@ contract SetFeedData is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
         uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
         uint256 livePeriod = 24 hours;
         uint256 maxDeltaMantissa = 1e17; // 10%
 
@@ -74,6 +79,7 @@ contract SetFeedData is Test {
             feed,
             cToken,
             decimals,
+            underlyingDecimals,
             livePeriod,
             maxDeltaMantissa
         );
@@ -81,12 +87,14 @@ contract SetFeedData is Test {
         (
             CToken fdCtoken,
             uint256 fdDecimals,
+            uint256 fdUnderlyingDecimals,
             uint256 fdLivePeriod,
             uint256 fdMaxDeltaMantissa
         ) = oracle.feedData(feed);
 
         assertEq(address(fdCtoken), address(cToken));
         assertEq(fdDecimals, decimals);
+        assertEq(fdUnderlyingDecimals, underlyingDecimals);
         assertEq(fdLivePeriod, livePeriod);
         assertEq(fdMaxDeltaMantissa, maxDeltaMantissa);
     }
