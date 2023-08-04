@@ -4,7 +4,7 @@
     "@matterlabs/hardhat-zksync-toolbox": "^0.2.0",
     "@nomicfoundation/hardhat-foundry": "^1.0.2",
     "@nomiclabs/hardhat-ethers": "^2.2.3",
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/eslint-plugin": "^6.2.1",
     "@typescript-eslint/parser": "^6.2.1",
     "dotenv": "^16.3.1",
     "enquirer": "^2.4.1",
