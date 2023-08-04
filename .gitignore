@@ -1,6 +1,8 @@
 # Compiler files
 cache/
 out/
+artifacts-zk/
+cache_hardhat-zk/
 
 # Ignores development broadcast logs
 !/broadcast
