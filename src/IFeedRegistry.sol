@@ -2,7 +2,7 @@
 pragma solidity 0.8.10;
 
 import {CToken} from "lib/zoro-protocol/contracts/CToken.sol";
-import {AggregatorV3Interface} from "node_modules/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 uint256 constant MAX_DELTA_BASE = 1e18;
 uint256 constant DEFAULT_FEED_DECIMALS = 8;

@@ -7,7 +7,7 @@ import {Math} from "lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {CToken, PriceOracle as IPriceOracle} from "lib/zoro-protocol/contracts/PriceOracle.sol";
 import {IPriceSubscriber, PriceData} from "src/IPriceSubscriber.sol";
 import {IFeedRegistry, FeedData, MAX_DELTA_BASE, DEFAULT_FEED_DECIMALS, DEFAULT_MAX_DELTA_MANTISSA, DEFAULT_LIVE_PERIOD} from "src/IFeedRegistry.sol";
-import {AggregatorV3Interface} from "node_modules/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 error InvalidTimestamp(uint256 timestamp);
 error PriceIsZero();
