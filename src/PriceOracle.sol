@@ -274,6 +274,8 @@ contract PriceOracle is
         pure
         returns (uint256)
     {
+        if (oldPrice == 0) return 0;
+
         uint256 delta = newPrice.max(oldPrice) - newPrice.min(oldPrice);
 
         return delta.mulDiv(MAX_DELTA_BASE, oldPrice);
