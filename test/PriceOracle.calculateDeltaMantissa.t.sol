@@ -29,6 +29,20 @@ contract CalculateDeltaMantissa is Test {
         assertEq(deltaMantissa, expectedDelta);
     }
 
+    function test_ZeroIfOldPriceIsZero() public {
+        uint256 expectedDelta = 0;
+
+        uint256 oldPrice = 0;
+        uint256 newPrice = 100;
+
+        uint256 deltaMantissa = oracle.exposed_calculateDeltaMantissa(
+            oldPrice,
+            newPrice
+        );
+
+        assertEq(deltaMantissa, expectedDelta);
+    }
+
     function testFuzz_Overflow(uint256 oldPrice, uint256 newPrice) public {
         vm.assume(oldPrice > 0);
 
