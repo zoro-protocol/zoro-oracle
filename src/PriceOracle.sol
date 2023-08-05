@@ -269,6 +269,11 @@ contract PriceOracle is
         return newPrice;
     }
 
+    /**
+     * @notice Overflows if `abs(newPrice - oldPrice) / oldPrice` exceeds
+     * `type(uint256).max / MAX_DELTA_BASE`. The value in this case is:
+     * `115792089237316195423570985008687907853269984665640564039457`
+     */
     function _calculateDeltaMantissa(uint256 oldPrice, uint256 newPrice)
         internal
         pure
