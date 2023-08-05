@@ -262,6 +262,8 @@ contract PriceOracle is
     ) internal pure returns (uint256) {
         uint256 newPriceDelta = oldPrice.mulDiv(deltaMantissa, MAX_DELTA_BASE);
 
+        if (newPriceDelta > oldPrice) return 0;
+
         uint256 newPrice = deltaIsNegative
             ? oldPrice - newPriceDelta
             : oldPrice + newPriceDelta;

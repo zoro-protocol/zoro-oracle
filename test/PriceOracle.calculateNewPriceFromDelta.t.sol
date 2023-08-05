@@ -49,4 +49,17 @@ contract CalculateNewPriceFromDelta is Test {
         uint256 expectedPrice = 11 * 1e7; // $1.10
         assertEq(newPrice, expectedPrice);
     }
+
+    function test_ZeroIfNewPriceIsNegative() public {
+        uint256 oldPrice = 1e8; // $1
+        uint256 deltaMantissa = 2e18; // 200%
+        uint256 newPrice = oracle.exposed_calculateNewPriceFromDelta(
+            oldPrice,
+            deltaMantissa,
+            true
+        );
+
+        uint256 expectedPrice = 0; // $0.00
+        assertEq(newPrice, expectedPrice);
+    }
 }
