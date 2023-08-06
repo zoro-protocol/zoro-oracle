@@ -156,25 +156,14 @@ contract PriceOracle is
             return price;
         }
 
-        uint256 deltaMantissa = _calculateDeltaMantissa(oldPrice, price);
-
-        uint256 maxDeltaMantissa = _useDefault(
-            fd.maxDeltaMantissa,
-            DEFAULT_MAX_DELTA_MANTISSA
+        uint256 newPrice = _applyPriceLimits(
+            price,
+            oldPrice,
+            fd.maxDeltaMantissa
         );
 
-        uint256 newPrice = 0;
-
-        if (deltaMantissa <= maxDeltaMantissa) newPrice = price;
-        else {
-            bool deltaIsNegative = price < oldPrice;
-
-            newPrice = _calculateNewPriceFromDelta(
-                oldPrice,
-                maxDeltaMantissa,
-                deltaIsNegative
-            );
-
+        // If the price was modified, it has exceeded the max delta
+        if (newPrice != price) {
             emit PriceExceededDelta(oldPrice, price, newPrice);
         }
 
@@ -255,7 +244,51 @@ contract PriceOracle is
         if (price == 0) revert PriceIsZero();
     }
 
-    function _calculateNewPriceFromDelta(
+    function _applyPriceLimits(
+        uint256 price,
+        uint256 oldPrice,
+        uint256 maxDeltaMantissa
+    ) internal pure returns (uint256) {
+        uint256 deltaMantissa = _calculateDeltaMantissa(oldPrice, price);
+
+        uint256 maxDeltaMantissa_ = _useDefault(
+            maxDeltaMantissa,
+            DEFAULT_MAX_DELTA_MANTISSA
+        );
+
+        uint256 newPrice = _updatePriceWithMaxDelta(
+            price,
+            oldPrice,
+            deltaMantissa,
+            maxDeltaMantissa_
+        );
+
+        return newPrice;
+    }
+
+    function _updatePriceWithMaxDelta(
+        uint256 price,
+        uint256 oldPrice,
+        uint256 deltaMantissa,
+        uint256 maxDeltaMantissa
+    ) internal pure returns (uint256) {
+        uint256 newPrice = 0;
+
+        if (deltaMantissa <= maxDeltaMantissa) newPrice = price;
+        else {
+            bool deltaIsNegative = price < oldPrice;
+
+            newPrice = _updatePriceWithDelta(
+                oldPrice,
+                maxDeltaMantissa,
+                deltaIsNegative
+            );
+        }
+
+        return newPrice;
+    }
+
+    function _updatePriceWithDelta(
         uint256 oldPrice,
         uint256 deltaMantissa,
         bool deltaIsNegative

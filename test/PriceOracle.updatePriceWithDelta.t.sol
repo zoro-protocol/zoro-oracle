@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract CalculateNewPriceFromDelta is Test {
+contract UpdatePriceWithDelta is Test {
     PriceOracle public oracle;
 
     function setUp() public {
@@ -14,7 +14,7 @@ contract CalculateNewPriceFromDelta is Test {
     function test_NoPriceChangeIfDeltaIsZero() public {
         uint256 oldPrice = 1e8; // $1
         uint256 deltaMantissa = 0;
-        uint256 newPrice = oracle.exposed_calculateNewPriceFromDelta(
+        uint256 newPrice = oracle.exposed_updatePriceWithDelta(
             oldPrice,
             deltaMantissa,
             false
@@ -27,7 +27,7 @@ contract CalculateNewPriceFromDelta is Test {
     function test_PriceChangeIfDeltaIsNegative() public {
         uint256 oldPrice = 1e8; // $1
         uint256 deltaMantissa = 1e17; // 10%
-        uint256 newPrice = oracle.exposed_calculateNewPriceFromDelta(
+        uint256 newPrice = oracle.exposed_updatePriceWithDelta(
             oldPrice,
             deltaMantissa,
             true
@@ -40,7 +40,7 @@ contract CalculateNewPriceFromDelta is Test {
     function test_PriceChangeIfDeltaIsPositive() public {
         uint256 oldPrice = 1e8; // $1
         uint256 deltaMantissa = 1e17; // 10%
-        uint256 newPrice = oracle.exposed_calculateNewPriceFromDelta(
+        uint256 newPrice = oracle.exposed_updatePriceWithDelta(
             oldPrice,
             deltaMantissa,
             false
@@ -53,7 +53,7 @@ contract CalculateNewPriceFromDelta is Test {
     function test_ZeroIfNewPriceIsNegative() public {
         uint256 oldPrice = 1e8; // $1
         uint256 deltaMantissa = 2e18; // 200%
-        uint256 newPrice = oracle.exposed_calculateNewPriceFromDelta(
+        uint256 newPrice = oracle.exposed_updatePriceWithDelta(
             oldPrice,
             deltaMantissa,
             true
