@@ -97,6 +97,21 @@ contract PriceOracleHarness is PriceOracle {
         return _calculateDeltaMantissa(oldPrice, newPrice);
     }
 
+    function exposed_updatePriceWithMaxDelta(
+        uint256 price,
+        uint256 oldPrice,
+        uint256 deltaMantissa,
+        uint256 maxDeltaMantissa
+    ) external pure returns (uint256) {
+        return
+            _updatePriceWithMaxDelta(
+                price,
+                oldPrice,
+                deltaMantissa,
+                maxDeltaMantissa
+            );
+    }
+
     function exposed_updatePriceWithDelta(
         uint256 oldPrice,
         uint256 deltaMantissa,
