@@ -43,7 +43,9 @@ contract CalculateDeltaMantissa is Test {
         assertEq(deltaMantissa, expectedDelta);
     }
 
-    function testFuzz_Overflow(uint256 oldPrice, uint256 newPrice) public {
+    function testFuzz_MaxUintIfCalcOverflows(uint256 oldPrice, uint256 newPrice)
+        public
+    {
         vm.assume(oldPrice > 0);
 
         uint256 percentChange = (newPrice.max(oldPrice) -
@@ -53,14 +55,12 @@ contract CalculateDeltaMantissa is Test {
 
         vm.assume(percentChange > maxChangeBeforeOverflow);
 
-        uint256 expectedDelta = 0;
-
-        vm.expectRevert();
         uint256 deltaMantissa = oracle.exposed_calculateDeltaMantissa(
             oldPrice,
             newPrice
         );
 
+        uint256 expectedDelta = type(uint256).max;
         assertEq(deltaMantissa, expectedDelta);
     }
 
