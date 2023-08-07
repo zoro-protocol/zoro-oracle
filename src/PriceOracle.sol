@@ -244,6 +244,10 @@ contract PriceOracle is
         if (price == 0) revert PriceIsZero();
     }
 
+    /**
+     * @notice No limits are applied if `oldPrice` is invalid. The new price
+     * should not be limited by an invalid anchor price.
+     */
     function _applyPriceLimits(
         uint256 price,
         uint256 oldPrice,
@@ -266,6 +270,10 @@ contract PriceOracle is
         return newPrice;
     }
 
+    /**
+     * @notice The max delta is infinite if `oldPrice` is invalid. The new
+     * price should not be limited by an invalid anchor price.
+     */
     function _updatePriceWithMaxDelta(
         uint256 price,
         uint256 oldPrice,
@@ -315,9 +323,14 @@ contract PriceOracle is
     }
 
     /**
-     * @notice Overflows if `abs(newPrice - oldPrice) / oldPrice` exceeds
-     * `type(uint256).max / MAX_DELTA_BASE`. The value in this case is:
-     * `115792089237316195423570985008687907853269984665640564039457`
+     * @notice Return zero if `oldPrice` is invalid. The new price should not
+     * be limited by an invalid anchor price.
+     *
+     * @notice Return uint256 max if `abs(newPrice - oldPrice) / oldPrice` is
+     * greater than `type(uint256).max / MAX_DELTA_BASE` to prevent overflow.
+     *
+     * @notice Return zero if delta is less than `oldPrice / MAX_DELTA_BASE`.
+     * This condition occurs because of `uint256` truncation.
      */
     function _calculateDeltaMantissa(uint256 oldPrice, uint256 newPrice)
         internal
