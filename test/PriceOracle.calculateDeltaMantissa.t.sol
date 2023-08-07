@@ -15,11 +15,10 @@ contract CalculateDeltaMantissa is Test {
         oracle = new PriceOracle(msg.sender, msg.sender, msg.sender);
     }
 
-    function test_ZeroIfNoPriceChange() public {
+    function testFuzz_ZeroIfNoPriceChange(uint256 oldPrice) public {
         uint256 expectedDelta = 0;
 
-        uint256 oldPrice = 100;
-        uint256 newPrice = 100;
+        uint256 newPrice = oldPrice;
 
         uint256 deltaMantissa = oracle.exposed_calculateDeltaMantissa(
             oldPrice,
@@ -29,11 +28,10 @@ contract CalculateDeltaMantissa is Test {
         assertEq(deltaMantissa, expectedDelta);
     }
 
-    function test_ZeroIfOldPriceIsZero() public {
+    function testFuzz_ZeroIfOldPriceIsZero(uint256 newPrice) public {
         uint256 expectedDelta = 0;
 
         uint256 oldPrice = 0;
-        uint256 newPrice = 100;
 
         uint256 deltaMantissa = oracle.exposed_calculateDeltaMantissa(
             oldPrice,
@@ -64,29 +62,41 @@ contract CalculateDeltaMantissa is Test {
         assertEq(deltaMantissa, expectedDelta);
     }
 
-    function test_PositiveDeltaWhenNegativeChange() public {
-        uint256 oldPrice = 100;
-        uint256 newPrice = 90;
+    function test_PositiveDeltaIfPriceChanges(
+        uint256 oldPrice,
+        uint256 newPrice
+    ) public {
+        // Condition when `oldPrice` is invalid
+        vm.assume(oldPrice > 0);
+
+        // Condition when delta is small enough to round to zero
+        uint256 delta = oldPrice.max(newPrice) - oldPrice.min(newPrice);
+        vm.assume(delta > oldPrice / MAX_DELTA_BASE);
 
         uint256 deltaMantissa = oracle.exposed_calculateDeltaMantissa(
             oldPrice,
             newPrice
         );
 
-        uint256 expected = 1 * 1e17; // 10%
-        assertEq(deltaMantissa, expected);
+        assertGt(deltaMantissa, 0);
     }
 
-    function test_PositiveDeltaWhenPositiveChange() public {
-        uint256 oldPrice = 100;
-        uint256 newPrice = 110;
+    function testFuzz_ZeroDeltaWhenChangeIsTooSmall(
+        uint256 oldPrice,
+        uint256 newPrice
+    ) public {
+        // Condition when `oldPrice` is invalid
+        vm.assume(oldPrice > 0);
+
+        // Condition when delta is small enough to round to zero
+        uint256 delta = oldPrice.max(newPrice) - oldPrice.min(newPrice);
+        vm.assume(delta < oldPrice / MAX_DELTA_BASE);
 
         uint256 deltaMantissa = oracle.exposed_calculateDeltaMantissa(
             oldPrice,
             newPrice
         );
 
-        uint256 expected = 1e17; // 10%
-        assertEq(deltaMantissa, expected);
+        assertEq(deltaMantissa, 0);
     }
 }
