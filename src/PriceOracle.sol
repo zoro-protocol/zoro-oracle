@@ -156,25 +156,14 @@ contract PriceOracle is
             return price;
         }
 
-        uint256 deltaMantissa = _calculateDeltaMantissa(oldPrice, price);
-
-        uint256 maxDeltaMantissa = _useDefault(
-            fd.maxDeltaMantissa,
-            DEFAULT_MAX_DELTA_MANTISSA
+        uint256 newPrice = _applyPriceLimits(
+            price,
+            oldPrice,
+            fd.maxDeltaMantissa
         );
 
-        uint256 newPrice = 0;
-
-        if (deltaMantissa <= maxDeltaMantissa) newPrice = price;
-        else {
-            bool deltaIsNegative = price < oldPrice;
-
-            newPrice = _calculateNewPriceFromDelta(
-                oldPrice,
-                maxDeltaMantissa,
-                deltaIsNegative
-            );
-
+        // If the price was modified, it has exceeded the max delta
+        if (newPrice != price) {
             emit PriceExceededDelta(oldPrice, price, newPrice);
         }
 
@@ -255,28 +244,106 @@ contract PriceOracle is
         if (price == 0) revert PriceIsZero();
     }
 
-    function _calculateNewPriceFromDelta(
+    /**
+     * @notice No limits are applied if `oldPrice` is invalid. The new price
+     * should not be limited by an invalid anchor price.
+     */
+    function _applyPriceLimits(
+        uint256 price,
         uint256 oldPrice,
-        uint256 deltaMantissa,
-        bool deltaIsNegative
+        uint256 maxDeltaMantissa
     ) internal pure returns (uint256) {
-        uint256 newPriceDelta = oldPrice.mulDiv(deltaMantissa, MAX_DELTA_BASE);
+        uint256 deltaMantissa = _calculateDeltaMantissa(oldPrice, price);
 
-        uint256 newPrice = deltaIsNegative
-            ? oldPrice - newPriceDelta
-            : oldPrice + newPriceDelta;
+        uint256 maxDeltaMantissa_ = _useDefault(
+            maxDeltaMantissa,
+            DEFAULT_MAX_DELTA_MANTISSA
+        );
+
+        uint256 newPrice = _updatePriceWithMaxDelta(
+            price,
+            oldPrice,
+            deltaMantissa,
+            maxDeltaMantissa_
+        );
 
         return newPrice;
     }
 
+    /**
+     * @notice The max delta is infinite if `oldPrice` is invalid. The new
+     * price should not be limited by an invalid anchor price.
+     */
+    function _updatePriceWithMaxDelta(
+        uint256 price,
+        uint256 oldPrice,
+        uint256 deltaMantissa,
+        uint256 maxDeltaMantissa
+    ) internal pure returns (uint256) {
+        uint256 newPrice = 0;
+
+        if (deltaMantissa <= maxDeltaMantissa) newPrice = price;
+        else {
+            bool deltaIsNegative = price < oldPrice;
+
+            newPrice = _updatePriceWithDelta(
+                oldPrice,
+                maxDeltaMantissa,
+                deltaIsNegative
+            );
+        }
+
+        return newPrice;
+    }
+
+    function _updatePriceWithDelta(
+        uint256 oldPrice,
+        uint256 deltaMantissa,
+        bool deltaIsNegative
+    ) internal pure returns (uint256) {
+        uint256 newPriceDelta = _mulDivCapped(
+            oldPrice,
+            deltaMantissa,
+            MAX_DELTA_BASE
+        );
+
+        uint256 newPrice = 0;
+
+        if (deltaIsNegative) {
+            // Limit the price to zero instead of underflow
+            newPrice = oldPrice > newPriceDelta ? oldPrice - newPriceDelta : 0;
+        } else {
+            // Limit the price to max uint instead of overflow
+            newPrice = oldPrice < type(uint256).max - newPriceDelta
+                ? oldPrice + newPriceDelta
+                : type(uint256).max;
+        }
+
+        return newPrice;
+    }
+
+    /**
+     * @notice Return zero if `oldPrice` is invalid. The new price should not
+     * be limited by an invalid anchor price.
+     *
+     * @notice Return uint256 max if `abs(newPrice - oldPrice) / oldPrice` is
+     * greater than `type(uint256).max / MAX_DELTA_BASE` to prevent overflow.
+     *
+     * @notice Return zero if delta is less than `oldPrice / MAX_DELTA_BASE`.
+     * This condition occurs because of `uint256` truncation.
+     */
     function _calculateDeltaMantissa(uint256 oldPrice, uint256 newPrice)
         internal
         pure
         returns (uint256)
     {
+        if (oldPrice == 0) return 0;
+
         uint256 delta = newPrice.max(oldPrice) - newPrice.min(oldPrice);
 
-        return delta > 0 ? delta.mulDiv(MAX_DELTA_BASE, oldPrice) : 0;
+        uint256 deltaMantissa = _mulDivCapped(delta, MAX_DELTA_BASE, oldPrice);
+
+        return deltaMantissa;
     }
 
     /**
@@ -318,5 +385,18 @@ contract PriceOracle is
         returns (uint256)
     {
         return value > 0 ? value : defaultValue;
+    }
+
+    /**
+     * @notice If `Math.mulDiv` would overflow, instead return `uint256` max
+     */
+    function _mulDivCapped(
+        uint256 x,
+        uint256 y,
+        uint256 z
+    ) internal pure returns (uint256) {
+        if (y == 0) return 0;
+        else if (x / z >= type(uint256).max / y) return type(uint256).max;
+        else return x.mulDiv(y, z);
     }
 }
