@@ -23,22 +23,15 @@ contract GetDataFromCToken is Test {
         CToken cToken = CToken(cTokenAddress);
 
         uint256 price = 1e8; // $1 (8 decimals)
-        uint256 timestamp = block.timestamp;
-        oracle.workaround_setPriceData(
-            cToken,
-            PriceData(feed, price, timestamp)
-        );
+        oracle.workaround_setPriceData(cToken, PriceData(feed, price));
 
         (PriceData memory pd, FeedData memory fd) = oracle
             .exposed_getDataFromCToken(cToken);
 
         assertEq(address(pd.feed), feedAddress);
         assertEq(pd.price, price);
-        assertEq(pd.timestamp, timestamp);
 
         assertEq(address(fd.cToken), address(0));
-        assertEq(fd.livePeriod, 0);
-        assertEq(fd.maxDeltaMantissa, 0);
     }
 
     function test_ReturnPriceDataAndFeedData() public {
@@ -50,35 +43,20 @@ contract GetDataFromCToken is Test {
 
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
-        uint256 livePeriod = 24 hours;
-        uint256 maxDeltaMantissa = 1e17; // 10%
         oracle.workaround_setFeedData(
             feed,
-            FeedData(
-                cToken,
-                decimals,
-                underlyingDecimals,
-                livePeriod,
-                maxDeltaMantissa
-            )
+            FeedData(cToken, decimals, underlyingDecimals)
         );
 
         uint256 price = 1e8; // $1 (8 decimals)
-        uint256 timestamp = block.timestamp;
-        oracle.workaround_setPriceData(
-            cToken,
-            PriceData(feed, price, timestamp)
-        );
+        oracle.workaround_setPriceData(cToken, PriceData(feed, price));
 
         (PriceData memory pd, FeedData memory fd) = oracle
             .exposed_getDataFromCToken(cToken);
 
         assertEq(address(pd.feed), feedAddress);
         assertEq(pd.price, price);
-        assertEq(pd.timestamp, timestamp);
 
         assertEq(address(fd.cToken), cTokenAddress);
-        assertEq(fd.livePeriod, livePeriod);
-        assertEq(fd.maxDeltaMantissa, maxDeltaMantissa);
     }
 }

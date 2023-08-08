@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import {Math} from "lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
+import {PriceOracleHarness as PriceOracle} from "src/AnchoredPriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract ApplyPriceLimits is Test {
