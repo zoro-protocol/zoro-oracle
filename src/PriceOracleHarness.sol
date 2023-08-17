@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
 pragma solidity 0.8.10;
 
-import {AggregatorV3Interface, CToken, FeedData, PriceData, PriceOracle} from "src/PriceOracle.sol";
+import {AggregatorV3Interface, CToken, EnumerableSet, FeedData, PriceData, PriceOracle} from "src/PriceOracle.sol";
 
 contract PriceOracleHarness is PriceOracle {
+    using EnumerableSet for EnumerableSet.AddressSet;
+
     constructor(
         address pricePublisher,
         address feedAdmin,
@@ -15,6 +17,10 @@ contract PriceOracleHarness is PriceOracle {
         FeedData calldata fd
     ) external {
         feedData[feed] = fd;
+    }
+
+    function workaround_setFeedAddress(address feed) external {
+        feedAddresses.add(feed);
     }
 
     function workaround_setPriceData(CToken cToken, PriceData calldata pd)
