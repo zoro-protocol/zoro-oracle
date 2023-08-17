@@ -21,4 +21,6 @@ interface IFeedRegistry {
         uint256 decimals,
         uint256 underlyingDecimals
     ) external;
+
+    function getFeedAddresses() external view returns (address[] memory);
 }

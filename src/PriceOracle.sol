@@ -3,6 +3,7 @@ pragma solidity 0.8.10;
 
 import {AccessControlDefaultAdminRules as AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControlDefaultAdminRules.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IFeedRegistry, FeedData} from "src/IFeedRegistry.sol";
 import {IPriceSubscriber, PriceData} from "src/IPriceSubscriber.sol";
 import {Math} from "lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
@@ -22,6 +23,7 @@ contract PriceOracle is
     AccessControl
 {
     using Math for uint256;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     bytes32 public constant PRICE_PUBLISHER_ROLE =
         keccak256("PRICE_PUBLISHER_ROLE");
@@ -33,6 +35,7 @@ contract PriceOracle is
 
     // `public` so the configuration can be checked
     mapping(AggregatorV3Interface => FeedData) public feedData;
+    EnumerableSet.AddressSet internal feedAddresses;
 
     // `internal` so all integrations must access through `getUnderlyingPrice`
     mapping(CToken => PriceData) internal _priceData;
@@ -84,6 +87,7 @@ contract PriceOracle is
         uint256 underlyingDecimals
     ) external onlyRole(FEED_ADMIN_ROLE) nonReentrant {
         _setFeedData(feed, cToken, decimals, underlyingDecimals);
+        feedAddresses.add(address(feed));
 
         emit UpdateFeed(feed, cToken);
     }
@@ -107,6 +111,10 @@ contract PriceOracle is
         );
 
         return priceMantissa;
+    }
+
+    function getFeedAddresses() external view returns (address[] memory) {
+        return feedAddresses.values();
     }
 
     function _setUnderlyingPrice(
