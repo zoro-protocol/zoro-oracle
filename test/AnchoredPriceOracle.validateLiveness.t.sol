@@ -2,9 +2,8 @@
 pragma solidity ^0.8.10;
 
 import {CToken} from "zoro-protocol/contracts/CToken.sol";
-import {FeedData} from "src/IFeedRegistry.sol";
-import {PriceIsStale} from "src/PriceOracle.sol";
-import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
+import {FeedData, PriceIsStale} from "src/AnchoredPriceOracle.sol";
+import {PriceOracleHarness as PriceOracle} from "src/AnchoredPriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract ValidateLiveness is Test {

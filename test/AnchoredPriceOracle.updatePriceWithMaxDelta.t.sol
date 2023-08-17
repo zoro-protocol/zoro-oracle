@@ -2,8 +2,8 @@
 pragma solidity ^0.8.10;
 
 import {Math} from "lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {MAX_DELTA_BASE} from "src/IFeedRegistry.sol";
-import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
+import {MAX_DELTA_BASE} from "src/AnchoredPriceOracle.sol";
+import {PriceOracleHarness as PriceOracle} from "src/AnchoredPriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract UpdatePriceWithMaxDelta is Test {

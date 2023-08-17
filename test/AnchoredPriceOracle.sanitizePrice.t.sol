@@ -3,10 +3,9 @@ pragma solidity ^0.8.10;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {CToken} from "zoro-protocol/contracts/CToken.sol";
-import {FeedData} from "src/IFeedRegistry.sol";
 import {Math} from "lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {PriceData} from "src/PriceOracle.sol";
-import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
+import {FeedData, PriceData} from "src/AnchoredPriceOracle.sol";
+import {PriceOracleHarness as PriceOracle} from "src/AnchoredPriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract SanitizePrice is Test {

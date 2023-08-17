@@ -7,9 +7,13 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 struct PriceData {
     AggregatorV3Interface feed;
     uint256 price;
+    uint256 timestamp;
 }
 
 interface IPriceSubscriber {
-    function setUnderlyingPrice(AggregatorV3Interface feed, uint256 price)
-        external;
+    function setUnderlyingPrice(
+        AggregatorV3Interface feed,
+        uint256 price,
+        uint256 timestamp
+    ) external;
 }

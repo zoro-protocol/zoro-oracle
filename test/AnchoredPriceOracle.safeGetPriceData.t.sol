@@ -3,9 +3,8 @@ pragma solidity ^0.8.10;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {CToken} from "zoro-protocol/contracts/CToken.sol";
-import {FeedData} from "src/IFeedRegistry.sol";
-import {PriceData, PriceNotSet} from "src/PriceOracle.sol";
-import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
+import {FeedData, PriceData, PriceNotSet} from "src/AnchoredPriceOracle.sol";
+import {PriceOracleHarness as PriceOracle} from "src/AnchoredPriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract SafeGetPriceData is Test {
@@ -28,7 +27,11 @@ contract SafeGetPriceData is Test {
 
         AggregatorV3Interface feed = AggregatorV3Interface(address(0));
         uint256 price = 1e8; // $1 (8 decimals)
-        oracle.workaround_setPriceData(cToken, PriceData(feed, price));
+        uint256 timestamp = block.timestamp;
+        oracle.workaround_setPriceData(
+            cToken,
+            PriceData(feed, price, timestamp)
+        );
 
         vm.expectRevert(abi.encodeWithSelector(PriceNotSet.selector, cToken));
         oracle.exposed_safeGetPriceData(cToken);
@@ -41,7 +44,11 @@ contract SafeGetPriceData is Test {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
         uint256 price = 0;
-        oracle.workaround_setPriceData(cToken, PriceData(feed, price));
+        uint256 timestamp = block.timestamp;
+        oracle.workaround_setPriceData(
+            cToken,
+            PriceData(feed, price, timestamp)
+        );
 
         vm.expectRevert(abi.encodeWithSelector(PriceNotSet.selector, cToken));
         oracle.exposed_safeGetPriceData(cToken);
@@ -54,11 +61,16 @@ contract SafeGetPriceData is Test {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
         uint256 price = 1e8; // $1 (8 decimals)
-        oracle.workaround_setPriceData(cToken, PriceData(feed, price));
+        uint256 timestamp = block.timestamp;
+        oracle.workaround_setPriceData(
+            cToken,
+            PriceData(feed, price, timestamp)
+        );
 
         PriceData memory pd = oracle.exposed_safeGetPriceData(cToken);
 
         assertEq(address(pd.feed), feedAddress);
         assertEq(pd.price, price);
+        assertEq(pd.timestamp, timestamp);
     }
 }
