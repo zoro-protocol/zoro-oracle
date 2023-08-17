@@ -87,7 +87,6 @@ contract PriceOracle is
         uint256 underlyingDecimals
     ) external onlyRole(FEED_ADMIN_ROLE) nonReentrant {
         _setFeedData(feed, cToken, decimals, underlyingDecimals);
-        feedAddresses.add(address(feed));
 
         emit UpdateFeed(feed, cToken);
     }
@@ -138,6 +137,7 @@ contract PriceOracle is
         _validateAddress(address(cToken));
 
         feedData[feed] = FeedData(cToken, decimals, underlyingDecimals);
+        feedAddresses.add(address(feed));
     }
 
     function _getData(CToken cToken)
