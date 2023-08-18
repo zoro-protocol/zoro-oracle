@@ -29,6 +29,15 @@ contract PriceOracleHarness is PriceOracle {
         _priceData[cToken] = pd;
     }
 
+    function exposed_setFeedData(
+        AggregatorV3Interface feed,
+        CToken cToken,
+        uint256 decimals,
+        uint256 underlyingDecimals
+    ) external {
+        _setFeedData(feed, cToken, decimals, underlyingDecimals);
+    }
+
     function exposed_priceData(CToken cToken)
         external
         view
