@@ -5,7 +5,7 @@ import {AccessControlDefaultAdminRules as AccessControl} from "lib/openzeppelin-
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IFeedRegistry, FeedData} from "src/IFeedRegistry.sol";
-import {IPriceSubscriber, PriceData} from "src/IPriceSubscriber.sol";
+import {IPriceSubscriber} from "src/IPriceSubscriber.sol";
 import {Math} from "lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {CToken, PriceOracle as IPriceOracle} from "lib/zoro-protocol/contracts/PriceOracle.sol";
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
@@ -35,13 +35,23 @@ contract PriceOracle is
 
     // `public` so the configuration can be checked
     mapping(AggregatorV3Interface => FeedData) public feedData;
-    EnumerableSet.AddressSet internal feedAddresses;
+    mapping(CToken => AggregatorV3Interface) public cTokenFeeds;
+
+    EnumerableSet.AddressSet internal _feedAddresses;
 
     // `internal` so all integrations must access through `getUnderlyingPrice`
-    mapping(CToken => PriceData) internal _priceData;
+    mapping(AggregatorV3Interface => uint256) internal _prices;
 
     event NewPrice(AggregatorV3Interface indexed feed, uint256 price);
-    event UpdateFeed(AggregatorV3Interface indexed feed, CToken indexed cToken);
+    event UpdateFeed(
+        AggregatorV3Interface indexed feed,
+        uint256 decimals,
+        uint256 underlyingDecimals
+    );
+    event UpdateCTokenFeed(
+        CToken indexed cToken,
+        AggregatorV3Interface indexed feed
+    );
 
     /**
      * @param pricePublisher Account that publishes new prices from Chainlink
@@ -68,9 +78,7 @@ contract PriceOracle is
         onlyRole(PRICE_PUBLISHER_ROLE)
         nonReentrant
     {
-        FeedData memory fd = _safeGetFeedData(feed);
-
-        _setUnderlyingPrice(feed, fd, price);
+        _setUnderlyingPrice(feed, price);
 
         emit NewPrice(feed, price);
     }
@@ -78,17 +86,31 @@ contract PriceOracle is
     /**
      * @notice Map a CToken to a price feed and configure the feed
      * @notice Must be called before prices can be set with `setUnderlyingPrice`
-     * @notice `feed` is an L1 price feed and `cToken` is an L2 CToken
+     * @notice `feed` is an L1 price feed
      */
     function setFeedData(
         AggregatorV3Interface feed,
-        CToken cToken,
         uint256 decimals,
         uint256 underlyingDecimals
     ) external onlyRole(FEED_ADMIN_ROLE) nonReentrant {
-        _setFeedData(feed, cToken, decimals, underlyingDecimals);
+        _setFeedData(feed, decimals, underlyingDecimals);
 
-        emit UpdateFeed(feed, cToken);
+        emit UpdateFeed(feed, decimals, underlyingDecimals);
+    }
+
+    /**
+     * @notice Set the price feed used by a CToken
+     * @notice `feed` is an L1 price feed and `cToken` is an L2 CToken
+     * @dev Creates a one-to-many mapping of price feeds to CTokens
+     */
+    function setCTokenFeed(CToken cToken, AggregatorV3Interface feed)
+        external
+        onlyRole(FEED_ADMIN_ROLE)
+        nonReentrant
+    {
+        _setCTokenFeed(cToken, feed);
+
+        emit UpdateCTokenFeed(cToken, feed);
     }
 
     /**
@@ -101,10 +123,10 @@ contract PriceOracle is
         override
         returns (uint256)
     {
-        (PriceData memory pd, FeedData memory fd) = _getData(cToken);
+        FeedData memory fd = _getFeedData(cToken);
 
         uint256 priceMantissa = _convertDecimalsForComptroller(
-            pd.price,
+            _prices[fd.feed],
             fd.decimals,
             fd.underlyingDecimals
         );
@@ -113,69 +135,52 @@ contract PriceOracle is
     }
 
     function getFeedAddresses() external view returns (address[] memory) {
-        return feedAddresses.values();
+        return _feedAddresses.values();
     }
 
-    function _setUnderlyingPrice(
-        AggregatorV3Interface feed,
-        FeedData memory fd,
-        uint256 price
-    ) internal {
+    function _setUnderlyingPrice(AggregatorV3Interface feed, uint256 price)
+        internal
+    {
         _validateAddress(address(feed));
         _validatePrice(price);
 
-        _priceData[fd.cToken] = PriceData(feed, price);
+        _prices[feed] = price;
     }
 
     function _setFeedData(
         AggregatorV3Interface feed,
-        CToken cToken,
         uint256 decimals,
         uint256 underlyingDecimals
     ) internal {
         _validateAddress(address(feed));
+
+        feedData[feed] = FeedData(feed, decimals, underlyingDecimals);
+        _feedAddresses.add(address(feed));
+    }
+
+    function _setCTokenFeed(CToken cToken, AggregatorV3Interface feed)
+        internal
+    {
+        _validateAddress(address(feed));
         _validateAddress(address(cToken));
 
-        feedData[feed] = FeedData(cToken, decimals, underlyingDecimals);
-        feedAddresses.add(address(feed));
+        cTokenFeeds[cToken] = feed;
     }
 
-    function _getData(CToken cToken)
-        internal
-        view
-        returns (PriceData memory, FeedData memory)
-    {
-        PriceData memory pd = _safeGetPriceData(cToken);
-        FeedData storage fd = feedData[pd.feed];
-
-        return (pd, fd);
-    }
-
-    function _safeGetFeedData(AggregatorV3Interface feed)
+    function _getFeedData(CToken cToken)
         internal
         view
         returns (FeedData memory)
     {
+        _validateAddress(address(cToken));
+        AggregatorV3Interface feed = cTokenFeeds[cToken];
+        _validateAddress(address(feed));
+
         FeedData storage fd = feedData[feed];
 
-        if (address(fd.cToken) == address(0)) revert FeedNotConfigured(feed);
+        if (address(fd.feed) == address(0)) revert FeedNotConfigured(feed);
 
         return fd;
-    }
-
-    function _safeGetPriceData(CToken cToken)
-        internal
-        view
-        returns (PriceData memory)
-    {
-        PriceData storage pd = _priceData[cToken];
-
-        bool feedNotSet = address(pd.feed) == address(0);
-        bool priceNotSet = pd.price == 0;
-
-        if (feedNotSet || priceNotSet) revert PriceNotSet(cToken);
-
-        return pd;
     }
 
     /**
