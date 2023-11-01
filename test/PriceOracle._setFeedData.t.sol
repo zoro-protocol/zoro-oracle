@@ -4,6 +4,7 @@ pragma solidity ^0.8.10;
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {CToken} from "zoro-protocol/contracts/CToken.sol";
 import {FeedData} from "src/IFeedRegistry.sol";
+import {InvalidAddress} from "src/PriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
@@ -16,23 +17,30 @@ contract SetFeedData is Test {
         oracle = new PriceOracle(msg.sender, address(this), msg.sender);
     }
 
-    function test_SetFeedData() public {
-        address feedAddress = makeAddr("feed");
-        AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
-        address cTokenAddress = makeAddr("cToken");
-        CToken cToken = CToken(cTokenAddress);
+    function test_RevertIfFeedIsZeroAddress() public {
+        AggregatorV3Interface feed = AggregatorV3Interface(address(0));
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
 
-        oracle.setFeedData(feed, cToken, decimals, underlyingDecimals);
+        vm.expectRevert(abi.encodeWithSelector(InvalidAddress.selector));
+        oracle.setFeedData(feed, decimals, underlyingDecimals);
+    }
+
+    function test_SetFeedData() public {
+        address feedAddress = makeAddr("feed");
+        AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
+        uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
+
+        oracle.setFeedData(feed, decimals, underlyingDecimals);
 
         (
-            CToken fdCtoken,
+            AggregatorV3Interface fdFeed,
             uint256 fdDecimals,
             uint256 fdUnderlyingDecimals
         ) = oracle.feedData(feed);
 
-        assertEq(address(fdCtoken), address(cToken));
+        assertEq(address(fdFeed), address(feed));
         assertEq(fdDecimals, decimals);
         assertEq(fdUnderlyingDecimals, underlyingDecimals);
     }
@@ -40,12 +48,10 @@ contract SetFeedData is Test {
     function test_SetFeedAddress() public {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
-        address cTokenAddress = makeAddr("cToken");
-        CToken cToken = CToken(cTokenAddress);
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
 
-        oracle.setFeedData(feed, cToken, decimals, underlyingDecimals);
+        oracle.setFeedData(feed, decimals, underlyingDecimals);
 
         address[] memory addresses = oracle.getFeedAddresses();
 
@@ -56,32 +62,25 @@ contract SetFeedData is Test {
     function test_UpdateIfDuplicateFeedAddress() public {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
-        address cTokenAddress = makeAddr("cToken");
-        CToken cToken = CToken(cTokenAddress);
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
 
-        oracle.setFeedData(feed, cToken, decimals, underlyingDecimals);
+        oracle.setFeedData(feed, decimals, underlyingDecimals);
 
-        address newCTokenAddress = makeAddr("newCToken");
-        CToken newCToken = CToken(newCTokenAddress);
         uint256 newDecimals = 10;
         uint256 newUnderlyingDecimals = 8;
 
-        oracle.setFeedData(feed, newCToken, newDecimals, newUnderlyingDecimals);
+        oracle.setFeedData(feed, newDecimals, newUnderlyingDecimals);
 
         address[] memory addresses = oracle.getFeedAddresses();
 
         assertEq(addresses.length, 1);
         assertEq(addresses[0], feedAddress);
 
-        (
-            CToken fdCtoken,
-            uint256 fdDecimals,
-            uint256 fdUnderlyingDecimals
-        ) = oracle.feedData(feed);
+        (, uint256 fdDecimals, uint256 fdUnderlyingDecimals) = oracle.feedData(
+            feed
+        );
 
-        assertEq(address(fdCtoken), address(newCToken));
         assertEq(fdDecimals, newDecimals);
         assertEq(fdUnderlyingDecimals, newUnderlyingDecimals);
     }

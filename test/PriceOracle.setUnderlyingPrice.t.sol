@@ -4,7 +4,6 @@ pragma solidity ^0.8.10;
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {CToken} from "zoro-protocol/contracts/CToken.sol";
 import {FeedData} from "src/IFeedRegistry.sol";
-import {PriceData} from "src/PriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
@@ -21,12 +20,9 @@ contract SetUnderlyingPrice is Test {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
 
-        address cTokenAddress = makeAddr("cToken");
-        CToken cToken = CToken(cTokenAddress);
-
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
-        FeedData memory fd = FeedData(cToken, decimals, underlyingDecimals);
+        FeedData memory fd = FeedData(feed, decimals, underlyingDecimals);
 
         oracle.workaround_setFeedData(feed, fd);
 
@@ -41,12 +37,9 @@ contract SetUnderlyingPrice is Test {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
 
-        address cTokenAddress = makeAddr("cToken");
-        CToken cToken = CToken(cTokenAddress);
-
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
-        FeedData memory fd = FeedData(cToken, decimals, underlyingDecimals);
+        FeedData memory fd = FeedData(feed, decimals, underlyingDecimals);
 
         oracle.workaround_setFeedData(feed, fd);
 
@@ -61,34 +54,27 @@ contract SetUnderlyingPrice is Test {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
 
-        address cTokenAddress = makeAddr("cToken");
-        CToken cToken = CToken(cTokenAddress);
-
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
-        FeedData memory fd = FeedData(cToken, decimals, underlyingDecimals);
+        FeedData memory fd = FeedData(feed, decimals, underlyingDecimals);
 
         oracle.workaround_setFeedData(feed, fd);
 
         uint256 price = 1e8; // $1 (8 decimals)
         oracle.setUnderlyingPrice(feed, price);
 
-        PriceData memory pd = oracle.exposed_priceData(cToken);
+        uint256 result = oracle.exposed_prices(feed);
 
-        assertEq(address(pd.feed), address(feed));
-        assertEq(pd.price, price);
+        assertEq(result, price);
     }
 
     function test_UpdatePriceData() public {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
 
-        address cTokenAddress = makeAddr("cToken");
-        CToken cToken = CToken(cTokenAddress);
-
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
-        FeedData memory fd = FeedData(cToken, decimals, underlyingDecimals);
+        FeedData memory fd = FeedData(feed, decimals, underlyingDecimals);
 
         oracle.workaround_setFeedData(feed, fd);
 
@@ -98,9 +84,8 @@ contract SetUnderlyingPrice is Test {
         uint256 newPrice = 11e7; // $1.10
         oracle.setUnderlyingPrice(feed, newPrice);
 
-        PriceData memory pd = oracle.exposed_priceData(cToken);
+        uint256 result = oracle.exposed_prices(feed);
 
-        assertEq(address(pd.feed), address(feed));
-        assertEq(pd.price, newPrice);
+        assertEq(result, newPrice);
     }
 }

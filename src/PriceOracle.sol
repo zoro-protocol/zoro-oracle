@@ -174,8 +174,8 @@ contract PriceOracle is
     {
         _validateAddress(address(cToken));
         AggregatorV3Interface feed = cTokenFeeds[cToken];
-        _validateAddress(address(feed));
 
+        _validateAddress(address(feed));
         FeedData storage fd = feedData[feed];
 
         if (address(fd.feed) == address(0)) revert FeedNotConfigured(feed);

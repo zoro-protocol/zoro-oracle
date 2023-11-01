@@ -4,7 +4,6 @@ pragma solidity ^0.8.10;
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {CToken} from "zoro-protocol/contracts/CToken.sol";
 import {FeedData} from "src/IFeedRegistry.sol";
-import {PriceData} from "src/PriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
@@ -19,18 +18,19 @@ contract SafeGetFeedData is Test {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
 
-        uint256 price = 1e8; // $1 (8 decimals)
-        PriceData memory pd = PriceData(feed, price);
-
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
+        oracle.workaround_setCTokenFeed(cToken, feed);
+
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
-        FeedData memory fd = FeedData(cToken, decimals, underlyingDecimals);
+        FeedData memory fd = FeedData(feed, decimals, underlyingDecimals);
 
         oracle.workaround_setFeedData(feed, fd);
-        oracle.workaround_setPriceData(cToken, pd);
+
+        uint256 price = 1e8; // $1 (8 decimals)
+        oracle.workaround_setPrice(feed, price);
 
         uint256 result = oracle.getUnderlyingPrice(cToken);
 
