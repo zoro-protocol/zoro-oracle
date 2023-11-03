@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 pragma solidity 0.8.10;
 
-import {AggregatorV3Interface, CToken, EnumerableSet, FeedData, PriceData, PriceOracle} from "src/PriceOracle.sol";
+import {AggregatorV3Interface, CToken, EnumerableSet, FeedData, PriceOracle} from "src/PriceOracle.sol";
 
 contract PriceOracleHarness is PriceOracle {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -19,55 +19,50 @@ contract PriceOracleHarness is PriceOracle {
         feedData[feed] = fd;
     }
 
-    function workaround_setFeedAddress(address feed) external {
-        feedAddresses.add(feed);
-    }
-
-    function workaround_setPriceData(CToken cToken, PriceData calldata pd)
+    function workaround_setCTokenFeed(CToken cToken, AggregatorV3Interface feed)
         external
     {
-        _priceData[cToken] = pd;
+        cTokenFeeds[cToken] = feed;
+    }
+
+    function workaround_setFeedAddress(address feed) external {
+        _feedAddresses.add(feed);
+    }
+
+    function workaround_setPrice(AggregatorV3Interface feed, uint256 price)
+        external
+    {
+        _prices[feed] = price;
     }
 
     function exposed_setFeedData(
         AggregatorV3Interface feed,
-        CToken cToken,
         uint256 decimals,
         uint256 underlyingDecimals
     ) external {
-        _setFeedData(feed, cToken, decimals, underlyingDecimals);
+        _setFeedData(feed, decimals, underlyingDecimals);
     }
 
-    function exposed_priceData(CToken cToken)
+    function exposed_setCTokenFeed(CToken cToken, AggregatorV3Interface feed)
         external
-        view
-        returns (PriceData memory)
     {
-        return _priceData[cToken];
+        _setCTokenFeed(cToken, feed);
     }
 
-    function exposed_getDataFromCToken(CToken cToken)
-        external
-        view
-        returns (PriceData memory, FeedData memory)
-    {
-        return _getData(cToken);
-    }
-
-    function exposed_safeGetFeedData(AggregatorV3Interface feed)
+    function exposed_getFeedData(CToken cToken)
         external
         view
         returns (FeedData memory)
     {
-        return _safeGetFeedData(feed);
+        return _getFeedData(cToken);
     }
 
-    function exposed_safeGetPriceData(CToken cToken)
+    function exposed_prices(AggregatorV3Interface feed)
         external
         view
-        returns (PriceData memory)
+        returns (uint256)
     {
-        return _safeGetPriceData(cToken);
+        return _prices[feed];
     }
 
     function exposed_convertDecimalsForComptroller(
