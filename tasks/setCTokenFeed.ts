@@ -19,7 +19,7 @@ export async function main(
   const oracleAddress: string = getMainAddresses()["oracle"][chainId];
 
   const oracle: ethers.Contract = await hre.ethers.getContractAt(
-    "PriceOracle",
+    "src/PriceOracle.sol:PriceOracle",
     oracleAddress,
     wallet
   );
