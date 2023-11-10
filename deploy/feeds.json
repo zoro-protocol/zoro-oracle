@@ -1,0 +1,27 @@
+{
+  "eth": {
+    "feed": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+    "decimals": 8,
+    "underlyingDecimals": 18
+  },
+  "wbtc": {
+    "feed": "0x230E0321Cf38F09e247e50Afc7801EA2351fe56F",
+    "decimals": 8,
+    "underlyingDecimals": 8
+  },
+  "usdc": {
+    "feed": "0x986b5e1e1755e3c2440e960477f25201b0a8bbd4",
+    "decimals": 8,
+    "underlyingDecimals": 6
+  },
+  "usdt": {
+    "feed": "0xee9f2375b4bdf6387aa8265dd4fb8f16512a1d46",
+    "decimals": 8,
+    "underlyingDecimals": 6
+  },
+  "steth": {
+    "feed": "0xcfe54b5cd566ab89272946f602d76ea879cab4a8",
+    "decimals": 8,
+    "underlyingDecimals": 18
+  }
+}
