@@ -10,7 +10,7 @@ import {Math} from "lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {CToken, PriceOracle as IPriceOracle} from "lib/zoro-protocol/contracts/PriceOracle.sol";
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 
-contract PriceOracle is
+contract BasePriceOracle is
     IPriceSubscriber,
     IFeedRegistry,
     IPriceOracle,
