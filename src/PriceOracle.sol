@@ -154,11 +154,11 @@ contract PriceOracle is
         AggregatorV3Interface feed,
         uint256 decimals,
         uint256 underlyingDecimals
-    ) internal {
+    ) internal returns (bool) {
         _validateAddress(address(feed));
 
         feedData[feed] = FeedData(feed, decimals, underlyingDecimals);
-        _feedAddresses.add(address(feed));
+        return _feedAddresses.add(address(feed));
     }
 
     function _setCTokenFeed(CToken cToken, AggregatorV3Interface feed)
