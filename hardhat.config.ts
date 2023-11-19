@@ -10,7 +10,7 @@ import richWallets from "./rich-wallets.json";
 const { ETH_KEYSTORE = "" } = process.env;
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.10",
+  solidity: "0.8.18",
   zksolc: {
     version: "1.3.13",
   },

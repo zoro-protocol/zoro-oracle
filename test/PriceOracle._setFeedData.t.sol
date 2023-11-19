@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {CToken} from "zoro-protocol/contracts/CToken.sol";
 import {FeedData} from "src/IFeedRegistry.sol";
-import {InvalidAddress} from "src/PriceOracle.sol";
+import {BasePriceOracle} from "src/BasePriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
@@ -22,7 +22,9 @@ contract SetFeedData is Test {
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
 
-        vm.expectRevert(abi.encodeWithSelector(InvalidAddress.selector));
+        vm.expectRevert(
+            abi.encodeWithSelector(BasePriceOracle.InvalidAddress.selector)
+        );
         oracle.setFeedData(feed, decimals, underlyingDecimals);
     }
 

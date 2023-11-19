@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-pragma solidity 0.8.10;
+pragma solidity 0.8.18;
 
 import {AccessControlDefaultAdminRules as AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControlDefaultAdminRules.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
@@ -10,12 +10,7 @@ import {Math} from "lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {CToken, PriceOracle as IPriceOracle} from "lib/zoro-protocol/contracts/PriceOracle.sol";
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 
-error PriceIsZero();
-error InvalidAddress();
-error FeedNotConfigured(AggregatorV3Interface feed);
-error PriceNotSet(CToken cToken);
-
-contract PriceOracle is
+contract BasePriceOracle is
     IPriceSubscriber,
     IFeedRegistry,
     IPriceOracle,
@@ -52,6 +47,11 @@ contract PriceOracle is
         CToken indexed cToken,
         AggregatorV3Interface indexed feed
     );
+
+    error PriceIsZero();
+    error InvalidAddress();
+    error FeedNotConfigured(AggregatorV3Interface feed);
+    error PriceNotSet(CToken cToken);
 
     /**
      * @param pricePublisher Account that publishes new prices from Chainlink
@@ -125,8 +125,11 @@ contract PriceOracle is
     {
         FeedData memory fd = _getFeedData(cToken);
 
+        uint256 feedPrice = _prices[fd.feed];
+        if (feedPrice == 0) revert PriceNotSet(cToken);
+
         uint256 priceMantissa = _convertDecimalsForComptroller(
-            _prices[fd.feed],
+            feedPrice,
             fd.decimals,
             fd.underlyingDecimals
         );
@@ -151,11 +154,11 @@ contract PriceOracle is
         AggregatorV3Interface feed,
         uint256 decimals,
         uint256 underlyingDecimals
-    ) internal {
+    ) internal returns (bool) {
         _validateAddress(address(feed));
 
         feedData[feed] = FeedData(feed, decimals, underlyingDecimals);
-        _feedAddresses.add(address(feed));
+        return _feedAddresses.add(address(feed));
     }
 
     function _setCTokenFeed(CToken cToken, AggregatorV3Interface feed)
