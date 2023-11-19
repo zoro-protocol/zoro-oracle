@@ -4,6 +4,7 @@ pragma solidity ^0.8.10;
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {CToken} from "zoro-protocol/contracts/CToken.sol";
 import {FeedData} from "src/IFeedRegistry.sol";
+import {BasePriceOracle} from "src/BasePriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
@@ -29,7 +30,9 @@ contract SafeGetFeedData is Test {
 
         oracle.workaround_setFeedData(feed, fd);
 
-        vm.expectRevert();
+        vm.expectRevert(
+            abi.encodeWithSelector(BasePriceOracle.PriceNotSet.selector, cToken)
+        );
         oracle.getUnderlyingPrice(cToken);
     }
 
