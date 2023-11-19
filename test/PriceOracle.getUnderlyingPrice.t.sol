@@ -14,6 +14,25 @@ contract SafeGetFeedData is Test {
         oracle = new PriceOracle(msg.sender, msg.sender, msg.sender);
     }
 
+    function test_RevertIfPriceNotSet() public {
+        address feedAddress = makeAddr("feed");
+        AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
+
+        address cTokenAddress = makeAddr("cToken");
+        CToken cToken = CToken(cTokenAddress);
+
+        oracle.workaround_setCTokenFeed(cToken, feed);
+
+        uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
+        FeedData memory fd = FeedData(feed, decimals, underlyingDecimals);
+
+        oracle.workaround_setFeedData(feed, fd);
+
+        vm.expectRevert();
+        oracle.getUnderlyingPrice(cToken);
+    }
+
     function test_ReturnPriceOfUnderlyingAsset() public {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);

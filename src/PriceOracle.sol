@@ -125,8 +125,11 @@ contract PriceOracle is
     {
         FeedData memory fd = _getFeedData(cToken);
 
+        uint256 feedPrice = _prices[fd.feed];
+        if (feedPrice == 0) revert PriceNotSet(cToken);
+
         uint256 priceMantissa = _convertDecimalsForComptroller(
-            _prices[fd.feed],
+            feedPrice,
             fd.decimals,
             fd.underlyingDecimals
         );
