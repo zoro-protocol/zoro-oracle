@@ -10,11 +10,6 @@ import {Math} from "lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {CToken, PriceOracle as IPriceOracle} from "lib/zoro-protocol/contracts/PriceOracle.sol";
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 
-error PriceIsZero();
-error InvalidAddress();
-error FeedNotConfigured(AggregatorV3Interface feed);
-error PriceNotSet(CToken cToken);
-
 contract PriceOracle is
     IPriceSubscriber,
     IFeedRegistry,
@@ -52,6 +47,11 @@ contract PriceOracle is
         CToken indexed cToken,
         AggregatorV3Interface indexed feed
     );
+
+    error PriceIsZero();
+    error InvalidAddress();
+    error FeedNotConfigured(AggregatorV3Interface feed);
+    error PriceNotSet(CToken cToken);
 
     /**
      * @param pricePublisher Account that publishes new prices from Chainlink
