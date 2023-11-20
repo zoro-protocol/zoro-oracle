@@ -15,27 +15,23 @@ contract SetCTokenFeed is Test {
         oracle = new PriceOracle(msg.sender, msg.sender, msg.sender);
     }
 
-    function test_revertIfCTokenIsZeroAddress() public {
+    function test_RevertIfCTokenIsZeroAddress() public {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
         address cTokenAddress = address(0);
         CToken cToken = CToken(cTokenAddress);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(BasePriceOracle.InvalidAddress.selector)
-        );
+        vm.expectRevert(BasePriceOracle.InvalidAddress.selector);
         oracle.exposed_setCTokenFeed(cToken, feed);
     }
 
-    function test_revertIfFeedIsZeroAddress() public {
+    function test_RevertIfFeedIsZeroAddress() public {
         address feedAddress = address(0);
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(BasePriceOracle.InvalidAddress.selector)
-        );
+        vm.expectRevert(BasePriceOracle.InvalidAddress.selector);
         oracle.exposed_setCTokenFeed(cToken, feed);
     }
 
