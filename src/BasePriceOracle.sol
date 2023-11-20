@@ -144,7 +144,7 @@ contract BasePriceOracle is
     function _setUnderlyingPrice(AggregatorV3Interface feed, uint256 price)
         internal
     {
-        _validateAddress(address(feed));
+        _validateFeedData(feed);
         _validatePrice(price);
 
         _prices[feed] = price;
@@ -164,8 +164,8 @@ contract BasePriceOracle is
     function _setCTokenFeed(CToken cToken, AggregatorV3Interface feed)
         internal
     {
-        _validateAddress(address(feed));
         _validateAddress(address(cToken));
+        _validateFeedData(feed);
 
         cTokenFeeds[cToken] = feed;
     }
@@ -178,10 +178,7 @@ contract BasePriceOracle is
         _validateAddress(address(cToken));
         AggregatorV3Interface feed = cTokenFeeds[cToken];
 
-        _validateAddress(address(feed));
-        FeedData storage fd = feedData[feed];
-
-        if (address(fd.feed) == address(0)) revert FeedNotConfigured(feed);
+        FeedData storage fd = _validateFeedData(feed);
 
         return fd;
     }

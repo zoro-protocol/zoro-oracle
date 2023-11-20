@@ -39,17 +39,19 @@ contract SetCTokenFeed is Test {
         oracle.exposed_setCTokenFeed(cToken, feed);
     }
 
-    function test_MapFeedToCTokenIfFeedNotConfigured() public {
+    function test_RevertIfFeedNotConfigured() public {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                BasePriceOracle.FeedNotConfigured.selector,
+                feed
+            )
+        );
         oracle.exposed_setCTokenFeed(cToken, feed);
-
-        AggregatorV3Interface newFeed = oracle.cTokenFeeds(cToken);
-
-        assertEq(address(newFeed), address(feed));
     }
 
     function test_MapFeedToCTokenIfFeedConfigured() public {
