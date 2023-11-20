@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: BSD-3-Clause
 pragma solidity 0.8.18;
 
+/**
+ *
+ *  __  /   _ \  _ \   _ \     _ \ _ \   _ \ __ __| _ \   __|   _ \  |
+ *     /   (   |   /  (   |    __/   /  (   |   |  (   | (     (   | |
+ *  ____| \___/ _|_\ \___/    _|  _|_\ \___/   _| \___/ \___| \___/ ____|
+ *
+ */
+
 import {AccessControlDefaultAdminRules as AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControlDefaultAdminRules.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -10,6 +18,13 @@ import {Math} from "lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {CToken, PriceOracle as IPriceOracle} from "lib/zoro-protocol/contracts/PriceOracle.sol";
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 
+/**
+ * @author Zoro
+ * @notice Prices are published to the oracle from Chainlink data feeds
+ * @notice Prices are consumed from the oracle by `Comptroller` contracts
+ * @notice Feeds must be configured before prices can be published
+ * @notice A `CToken` must be connected to a feed before prices can be consumed
+ */
 contract BasePriceOracle is
     IPriceSubscriber,
     IFeedRegistry,
@@ -68,10 +83,11 @@ contract BasePriceOracle is
     }
 
     /**
-     * @notice Set the underlying price of the CToken mapped to the `feed`
-     * @notice CTokens are mapped to a `feed` with `setFeedData`
-     * @notice Caller can set prices pulled from a price feed with no knowledge
-     * of protocol implementation.
+     * @notice Publish the price from a feed
+     * @notice Reverts if the new price is invalid
+     * @notice Reverts if the feed is not configured with `configureFeed`
+     * @param feed Chainlink data feed https://data.chain.link/
+     * @param price `latestAnswer` from `feed` without any decimal conversion
      */
     function setUnderlyingPrice(AggregatorV3Interface feed, uint256 price)
         external
@@ -84,9 +100,10 @@ contract BasePriceOracle is
     }
 
     /**
-     * @notice Map a CToken to a price feed and configure the feed
-     * @notice Must be called before prices can be set with `setUnderlyingPrice`
-     * @notice `feed` is an L1 price feed
+     * @notice Configure the settings for a price feed
+     * @notice A feed must be configured before it can have prices published
+     * @notice A feed must be configured before a `CToken` can be connected
+     * @param feed Chainlink data feed https://data.chain.link/
      */
     function configureFeed(
         AggregatorV3Interface feed,
@@ -99,9 +116,11 @@ contract BasePriceOracle is
     }
 
     /**
-     * @notice Set the price feed used by a CToken
-     * @notice `feed` is an L1 price feed and `cToken` is an L2 CToken
-     * @dev Creates a one-to-many mapping of price feeds to CTokens
+     * @notice Use prices from `feed` for the `cToken` underlying asset
+     * @notice Reverts if the feed is not configured with `configureFeed`
+     * @dev Feeds and `CToken` contracts have a one-to-many relationship
+     * @param cToken Compound market that needs prices from the `feed`
+     * @param feed Chainlink data feed https://data.chain.link/
      */
     function connectCTokenToFeed(CToken cToken, AggregatorV3Interface feed)
         external
@@ -114,8 +133,15 @@ contract BasePriceOracle is
     }
 
     /**
-     * @notice Get the underlying price of a CToken
-     * @notice Reverts if there is no feed, no price, or stale price data
+     * @notice Get the price for the underlying asset of a `CToken`
+     * @notice Prices are used by `Comptroller` contracts
+     * @notice Prices are automatically converted to the correct decimals
+     * @notice Reverts if the price is invalid
+     * @notice Reverts if `cToken` is not connected with `connectCTokenToFeed`
+     * @notice Reverts if the feed is not configured with `configureFeed`
+     * @dev `Comptroller` expects the format: `${raw price} * 1e36 / baseUnit`
+     * @param cToken Compound market
+     * @return Price with the correct decimals expected by a `Comptroller`
      */
     function getUnderlyingPrice(CToken cToken)
         external
@@ -137,6 +163,9 @@ contract BasePriceOracle is
         return priceMantissa;
     }
 
+    /**
+     * @notice Get all configured feed addresses
+     */
     function getFeedAddresses() external view returns (address[] memory) {
         return _feedAddresses.values();
     }
@@ -190,12 +219,11 @@ contract BasePriceOracle is
 
     /**
      * @notice Comptroller expects the format: `${raw price} * 1e36 / baseUnit`
-     * The `baseUnit` of an asset is the smallest whole unit of that asset.
-     * E.g. The `baseUnit` of ETH is 1e18 and the price feed is 8 decimals:
-     * `price * 1e(36 - 8)/baseUnit`
-     *
-     * @dev There are no default values for `decimals` and `underlyingDecimals`
-     * because zero is a valid value.
+     * @notice The `baseUnit` is the smallest whole unit of the asset
+     * @notice E.g. The `baseUnit` of ETH is 1e18
+     * @notice E.g. The ETH Chainlink data feed uses 8 decimal prices
+     * @notice E.g. `${ETH price} = ${ETH raw price} * 1e(36 - 8) / 1e18`
+     * @dev Zero is a valid value for `decimals` and `underlyingDecimals`
      */
     function _convertDecimalsForComptroller(
         uint256 value,
@@ -207,13 +235,13 @@ contract BasePriceOracle is
         uint256 decimalDelta = totalDecimals.max(PRICE_MANTISSA_DECIMALS) -
             totalDecimals.min(PRICE_MANTISSA_DECIMALS);
 
-        // Handle decimals that normalize all possible `uint` values to zero
+        // Handle decimal combinations that round `value` to zero
         if (decimalDelta > _MAX_UINT_DIGITS) return 0;
 
-        // Remaining decimal values will not cause an overflow
+        // All remaining decimal combinations will not cause an overflow
         uint256 decimalDeltaBase = 10**decimalDelta;
 
-        // Will not overflow if condition for multiplication is held
+        // This operation should never overflow because of the conditional
         uint256 normalizedValue = totalDecimals < PRICE_MANTISSA_DECIMALS
             ? value * decimalDeltaBase
             : value / decimalDeltaBase;
