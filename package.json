@@ -2,7 +2,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "deploy": "hardhat deploy-zksync",
-    "test": "forge test"
+    "test": "forge test -vvv"
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.6.1",
