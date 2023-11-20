@@ -4,6 +4,7 @@ pragma solidity ^0.8.10;
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {CToken} from "zoro-protocol/contracts/CToken.sol";
 import {FeedData} from "src/IFeedRegistry.sol";
+import {BasePriceOracle} from "src/BasePriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
@@ -30,6 +31,21 @@ contract SetUnderlyingPrice is Test {
 
         vm.expectRevert();
         hoax(msg.sender);
+        oracle.setUnderlyingPrice(feed, price);
+    }
+
+    function test_RevertIfNewPriceIsInvalid() public {
+        address feedAddress = makeAddr("feed");
+        AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
+
+        uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
+        FeedData memory fd = FeedData(feed, decimals, underlyingDecimals);
+
+        oracle.workaround_setFeedData(feed, fd);
+
+        uint256 price = 0; // $1 (8 decimals)
+        vm.expectRevert(BasePriceOracle.PriceIsZero.selector);
         oracle.setUnderlyingPrice(feed, price);
     }
 

@@ -77,4 +77,8 @@ contract PriceOracleHarness is BasePriceOracle {
     function exposed_validateAddress(address addr) external pure {
         _validateAddress(addr);
     }
+
+    function exposed_validatePrice(uint256 price) external pure {
+        _validatePrice(price);
+    }
 }
