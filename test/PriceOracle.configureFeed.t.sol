@@ -2,11 +2,11 @@
 pragma solidity ^0.8.10;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import {FeedData} from "src/IFeedRegistry.sol";
+import {Feed} from "src/IFeedRegistry.sol";
 import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract SetFeedData is Test {
+contract ConfigureFeed is Test {
     PriceOracle public oracle;
 
     event UpdateFeed(
@@ -27,7 +27,7 @@ contract SetFeedData is Test {
 
         vm.expectRevert();
         hoax(msg.sender);
-        oracle.setFeedData(feed, decimals, underlyingDecimals);
+        oracle.configureFeed(feed, decimals, underlyingDecimals);
     }
 
     function test_EmitOnSuccess() public {
@@ -38,22 +38,22 @@ contract SetFeedData is Test {
 
         vm.expectEmit();
         emit UpdateFeed(feed, decimals, underlyingDecimals);
-        oracle.setFeedData(feed, decimals, underlyingDecimals);
+        oracle.configureFeed(feed, decimals, underlyingDecimals);
     }
 
-    function test_SetFeedData() public {
+    function test_ConfigureFeed() public {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
 
-        oracle.setFeedData(feed, decimals, underlyingDecimals);
+        oracle.configureFeed(feed, decimals, underlyingDecimals);
 
         (
             AggregatorV3Interface fdFeed,
             uint256 fdDecimals,
             uint256 fdUnderlyingDecimals
-        ) = oracle.feedData(feed);
+        ) = oracle.allFeeds(feed);
 
         assertEq(address(fdFeed), address(feed));
         assertEq(fdDecimals, decimals);

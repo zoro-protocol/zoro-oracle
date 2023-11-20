@@ -3,10 +3,11 @@ pragma solidity ^0.8.10;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {CToken} from "zoro-protocol/contracts/CToken.sol";
+import {Feed} from "src/IFeedRegistry.sol";
 import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract SetCTokenFeed is Test {
+contract ConnectCTokenToFeed is Test {
     PriceOracle public oracle;
 
     event UpdateCTokenFeed(
@@ -24,9 +25,15 @@ contract SetCTokenFeed is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
+        uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
+        Feed memory fd = Feed(feed, decimals, underlyingDecimals);
+
+        oracle.workaround_setAllFeeds(feed, fd);
+
         vm.expectRevert();
         hoax(msg.sender);
-        oracle.setCTokenFeed(cToken, feed);
+        oracle.connectCTokenToFeed(cToken, feed);
     }
 
     function test_EmitOnSuccess() public {
@@ -36,8 +43,14 @@ contract SetCTokenFeed is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
+        uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
+        Feed memory fd = Feed(feed, decimals, underlyingDecimals);
+
+        oracle.workaround_setAllFeeds(feed, fd);
+
         vm.expectEmit();
         emit UpdateCTokenFeed(cToken, feed);
-        oracle.setCTokenFeed(cToken, feed);
+        oracle.connectCTokenToFeed(cToken, feed);
     }
 }

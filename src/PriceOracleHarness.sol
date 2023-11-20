@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 pragma solidity 0.8.18;
 
-import {AggregatorV3Interface, CToken, EnumerableSet, FeedData, BasePriceOracle} from "src/BasePriceOracle.sol";
+import {AggregatorV3Interface, CToken, EnumerableSet, Feed, BasePriceOracle} from "src/BasePriceOracle.sol";
 
 contract PriceOracleHarness is BasePriceOracle {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -12,17 +12,18 @@ contract PriceOracleHarness is BasePriceOracle {
         address defaultAdmin
     ) BasePriceOracle(pricePublisher, feedAdmin, defaultAdmin) {}
 
-    function workaround_setFeedData(
+    function workaround_setAllFeeds(
         AggregatorV3Interface feed,
-        FeedData calldata fd
+        Feed calldata fd
     ) external {
-        feedData[feed] = fd;
+        allFeeds[feed] = fd;
     }
 
-    function workaround_setCTokenFeed(CToken cToken, AggregatorV3Interface feed)
-        external
-    {
-        cTokenFeeds[cToken] = feed;
+    function workaround_setConnectedFeeds(
+        CToken cToken,
+        AggregatorV3Interface feed
+    ) external {
+        connectedFeeds[cToken] = feed;
     }
 
     function workaround_setFeedAddress(address feed) external {
@@ -35,26 +36,27 @@ contract PriceOracleHarness is BasePriceOracle {
         _prices[feed] = price;
     }
 
-    function exposed_setFeedData(
+    function exposed_configureFeed(
         AggregatorV3Interface feed,
         uint256 decimals,
         uint256 underlyingDecimals
     ) external {
-        _setFeedData(feed, decimals, underlyingDecimals);
+        _configureFeed(feed, decimals, underlyingDecimals);
     }
 
-    function exposed_setCTokenFeed(CToken cToken, AggregatorV3Interface feed)
-        external
-    {
-        _setCTokenFeed(cToken, feed);
+    function exposed_connectCTokenToFeed(
+        CToken cToken,
+        AggregatorV3Interface feed
+    ) external {
+        _connectCTokenToFeed(cToken, feed);
     }
 
-    function exposed_getFeedData(CToken cToken)
+    function exposed_getConnectedFeed(CToken cToken)
         external
         view
-        returns (FeedData memory)
+        returns (Feed memory)
     {
-        return _getFeedData(cToken);
+        return _getConnectedFeed(cToken);
     }
 
     function exposed_prices(AggregatorV3Interface feed)
@@ -76,5 +78,16 @@ contract PriceOracleHarness is BasePriceOracle {
 
     function exposed_validateAddress(address addr) external pure {
         _validateAddress(addr);
+    }
+
+    function exposed_validateFeed(Feed memory fd, AggregatorV3Interface feed)
+        external
+        pure
+    {
+        _validateFeed(fd, feed);
+    }
+
+    function exposed_validatePrice(uint256 price) external pure {
+        _validatePrice(price);
     }
 }

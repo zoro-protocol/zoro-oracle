@@ -4,7 +4,7 @@ pragma solidity 0.8.18;
 import {AccessControlDefaultAdminRules as AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControlDefaultAdminRules.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {IFeedRegistry, FeedData} from "src/IFeedRegistry.sol";
+import {IFeedRegistry, Feed} from "src/IFeedRegistry.sol";
 import {IPriceSubscriber} from "src/IPriceSubscriber.sol";
 import {Math} from "lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {CToken, PriceOracle as IPriceOracle} from "lib/zoro-protocol/contracts/PriceOracle.sol";
@@ -29,8 +29,8 @@ contract BasePriceOracle is
     uint256 private constant _MAX_UINT_DIGITS = 77;
 
     // `public` so the configuration can be checked
-    mapping(AggregatorV3Interface => FeedData) public feedData;
-    mapping(CToken => AggregatorV3Interface) public cTokenFeeds;
+    mapping(AggregatorV3Interface => Feed) public allFeeds;
+    mapping(CToken => AggregatorV3Interface) public connectedFeeds;
 
     EnumerableSet.AddressSet internal _feedAddresses;
 
@@ -88,12 +88,12 @@ contract BasePriceOracle is
      * @notice Must be called before prices can be set with `setUnderlyingPrice`
      * @notice `feed` is an L1 price feed
      */
-    function setFeedData(
+    function configureFeed(
         AggregatorV3Interface feed,
         uint256 decimals,
         uint256 underlyingDecimals
     ) external onlyRole(FEED_ADMIN_ROLE) nonReentrant {
-        _setFeedData(feed, decimals, underlyingDecimals);
+        _configureFeed(feed, decimals, underlyingDecimals);
 
         emit UpdateFeed(feed, decimals, underlyingDecimals);
     }
@@ -103,12 +103,12 @@ contract BasePriceOracle is
      * @notice `feed` is an L1 price feed and `cToken` is an L2 CToken
      * @dev Creates a one-to-many mapping of price feeds to CTokens
      */
-    function setCTokenFeed(CToken cToken, AggregatorV3Interface feed)
+    function connectCTokenToFeed(CToken cToken, AggregatorV3Interface feed)
         external
         onlyRole(FEED_ADMIN_ROLE)
         nonReentrant
     {
-        _setCTokenFeed(cToken, feed);
+        _connectCTokenToFeed(cToken, feed);
 
         emit UpdateCTokenFeed(cToken, feed);
     }
@@ -123,7 +123,7 @@ contract BasePriceOracle is
         override
         returns (uint256)
     {
-        FeedData memory fd = _getFeedData(cToken);
+        Feed memory fd = _getConnectedFeed(cToken);
 
         uint256 feedPrice = _prices[fd.feed];
         if (feedPrice == 0) revert PriceNotSet(cToken);
@@ -145,43 +145,45 @@ contract BasePriceOracle is
         internal
     {
         _validateAddress(address(feed));
+        _validateFeed(allFeeds[feed], feed);
         _validatePrice(price);
 
         _prices[feed] = price;
     }
 
-    function _setFeedData(
+    function _configureFeed(
         AggregatorV3Interface feed,
         uint256 decimals,
         uint256 underlyingDecimals
     ) internal returns (bool) {
         _validateAddress(address(feed));
 
-        feedData[feed] = FeedData(feed, decimals, underlyingDecimals);
+        allFeeds[feed] = Feed(feed, decimals, underlyingDecimals);
         return _feedAddresses.add(address(feed));
     }
 
-    function _setCTokenFeed(CToken cToken, AggregatorV3Interface feed)
+    function _connectCTokenToFeed(CToken cToken, AggregatorV3Interface feed)
         internal
     {
-        _validateAddress(address(feed));
         _validateAddress(address(cToken));
+        _validateAddress(address(feed));
+        _validateFeed(allFeeds[feed], feed);
 
-        cTokenFeeds[cToken] = feed;
+        connectedFeeds[cToken] = feed;
     }
 
-    function _getFeedData(CToken cToken)
+    function _getConnectedFeed(CToken cToken)
         internal
         view
-        returns (FeedData memory)
+        returns (Feed memory)
     {
         _validateAddress(address(cToken));
-        AggregatorV3Interface feed = cTokenFeeds[cToken];
+        AggregatorV3Interface feed = connectedFeeds[cToken];
 
         _validateAddress(address(feed));
-        FeedData storage fd = feedData[feed];
 
-        if (address(fd.feed) == address(0)) revert FeedNotConfigured(feed);
+        Feed storage fd = allFeeds[feed];
+        _validateFeed(fd, feed);
 
         return fd;
     }
@@ -221,6 +223,15 @@ contract BasePriceOracle is
 
     function _validateAddress(address addr) internal pure {
         if (address(addr) == address(0)) revert InvalidAddress();
+    }
+
+    function _validateFeed(Feed memory fd, AggregatorV3Interface feed)
+        internal
+        pure
+    {
+        bool noConfig = address(fd.feed) == address(0);
+        bool incorrectConfig = fd.feed != feed;
+        if (noConfig || incorrectConfig) revert FeedNotConfigured(feed);
     }
 
     function _validatePrice(uint256 price) internal pure {

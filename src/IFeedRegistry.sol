@@ -8,7 +8,7 @@ uint256 constant MAX_DELTA_BASE = 1e18;
 uint256 constant DEFAULT_MAX_DELTA_MANTISSA = 20 * 1e16; // 20%
 uint256 constant DEFAULT_LIVE_PERIOD = 30 hours;
 
-struct FeedData {
+struct Feed {
     // Checked to make sure the feed data is set even when decimals are zero
     AggregatorV3Interface feed;
     uint256 decimals;
@@ -16,15 +16,16 @@ struct FeedData {
 }
 
 interface IFeedRegistry {
-    function setFeedData(
+    function configureFeed(
         AggregatorV3Interface feed,
         uint256 decimals,
         uint256 underlyingDecimals
     ) external;
 
-    function setCTokenFeed(CToken cToken, AggregatorV3Interface feed) external;
+    function connectCTokenToFeed(CToken cToken, AggregatorV3Interface feed)
+        external;
 
-    function cTokenFeeds(CToken) external returns (AggregatorV3Interface);
+    function connectedFeeds(CToken) external returns (AggregatorV3Interface);
 
     function getFeedAddresses() external view returns (address[] memory);
 }
