@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {CToken} from "zoro-protocol/contracts/CToken.sol";
+import {FeedData} from "src/IFeedRegistry.sol";
 import {BasePriceOracle} from "src/BasePriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
@@ -38,11 +39,31 @@ contract SetCTokenFeed is Test {
         oracle.exposed_setCTokenFeed(cToken, feed);
     }
 
-    function test_MapFeedToCToken() public {
+    function test_MapFeedToCTokenIfFeedNotConfigured() public {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
+
+        oracle.exposed_setCTokenFeed(cToken, feed);
+
+        AggregatorV3Interface newFeed = oracle.cTokenFeeds(cToken);
+
+        assertEq(address(newFeed), address(feed));
+    }
+
+    function test_MapFeedToCTokenIfFeedConfigured() public {
+        address feedAddress = makeAddr("feed");
+        AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
+
+        address cTokenAddress = makeAddr("cToken");
+        CToken cToken = CToken(cTokenAddress);
+
+        uint256 decimals = 8;
+        uint256 underlyingDecimals = 18;
+        FeedData memory fd = FeedData(feed, decimals, underlyingDecimals);
+
+        oracle.workaround_setFeedData(feed, fd);
 
         oracle.exposed_setCTokenFeed(cToken, feed);
 

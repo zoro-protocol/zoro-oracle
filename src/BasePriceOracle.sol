@@ -223,6 +223,19 @@ contract BasePriceOracle is
         if (address(addr) == address(0)) revert InvalidAddress();
     }
 
+    function _validateFeedData(AggregatorV3Interface feed)
+        internal
+        view
+        returns (FeedData storage)
+    {
+        _validateAddress(address(feed));
+
+        FeedData storage fd = feedData[feed];
+        if (address(fd.feed) == address(0)) revert FeedNotConfigured(feed);
+
+        return fd;
+    }
+
     function _validatePrice(uint256 price) internal pure {
         if (price == 0) revert PriceIsZero();
     }

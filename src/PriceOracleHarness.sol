@@ -78,6 +78,14 @@ contract PriceOracleHarness is BasePriceOracle {
         _validateAddress(addr);
     }
 
+    function exposed_validateFeedData(AggregatorV3Interface feed)
+        external
+        view
+        returns (FeedData memory)
+    {
+        return _validateFeedData(feed);
+    }
+
     function exposed_validatePrice(uint256 price) external pure {
         _validatePrice(price);
     }
