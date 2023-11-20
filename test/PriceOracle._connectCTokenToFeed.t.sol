@@ -3,12 +3,12 @@ pragma solidity ^0.8.10;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {CToken} from "zoro-protocol/contracts/CToken.sol";
-import {FeedData} from "src/IFeedRegistry.sol";
+import {Feed} from "src/IFeedRegistry.sol";
 import {BasePriceOracle} from "src/BasePriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract SetCTokenFeed is Test {
+contract ConnectCTokenToFeed is Test {
     PriceOracle public oracle;
 
     function setUp() public {
@@ -22,7 +22,7 @@ contract SetCTokenFeed is Test {
         CToken cToken = CToken(cTokenAddress);
 
         vm.expectRevert(BasePriceOracle.InvalidAddress.selector);
-        oracle.exposed_setCTokenFeed(cToken, feed);
+        oracle.exposed_connectCTokenToFeed(cToken, feed);
     }
 
     function test_RevertIfFeedIsZeroAddress() public {
@@ -32,7 +32,7 @@ contract SetCTokenFeed is Test {
         CToken cToken = CToken(cTokenAddress);
 
         vm.expectRevert(BasePriceOracle.InvalidAddress.selector);
-        oracle.exposed_setCTokenFeed(cToken, feed);
+        oracle.exposed_connectCTokenToFeed(cToken, feed);
     }
 
     function test_RevertIfFeedNotConfigured() public {
@@ -47,10 +47,10 @@ contract SetCTokenFeed is Test {
                 feed
             )
         );
-        oracle.exposed_setCTokenFeed(cToken, feed);
+        oracle.exposed_connectCTokenToFeed(cToken, feed);
     }
 
-    function test_MapFeedToCTokenIfFeedConfigured() public {
+    function test_ConnectCTokenIfFeedConfigured() public {
         address feedAddress = makeAddr("feed");
         AggregatorV3Interface feed = AggregatorV3Interface(feedAddress);
 
@@ -59,13 +59,13 @@ contract SetCTokenFeed is Test {
 
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
-        FeedData memory fd = FeedData(feed, decimals, underlyingDecimals);
+        Feed memory fd = Feed(feed, decimals, underlyingDecimals);
 
-        oracle.workaround_setFeedData(feed, fd);
+        oracle.workaround_setAllFeeds(feed, fd);
 
-        oracle.exposed_setCTokenFeed(cToken, feed);
+        oracle.exposed_connectCTokenToFeed(cToken, feed);
 
-        AggregatorV3Interface newFeed = oracle.cTokenFeeds(cToken);
+        AggregatorV3Interface newFeed = oracle.connectedFeeds(cToken);
 
         assertEq(address(newFeed), address(feed));
     }

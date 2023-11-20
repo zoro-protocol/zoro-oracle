@@ -3,12 +3,12 @@ pragma solidity ^0.8.10;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {CToken} from "zoro-protocol/contracts/CToken.sol";
-import {FeedData} from "src/IFeedRegistry.sol";
+import {Feed} from "src/IFeedRegistry.sol";
 import {BasePriceOracle} from "src/BasePriceOracle.sol";
 import {PriceOracleHarness as PriceOracle} from "src/PriceOracleHarness.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract SafeGetFeedData is Test {
+contract GetUnderlyingPrice is Test {
     PriceOracle public oracle;
 
     function setUp() public {
@@ -22,13 +22,13 @@ contract SafeGetFeedData is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
-        oracle.workaround_setCTokenFeed(cToken, feed);
+        oracle.workaround_setConnectedFeeds(cToken, feed);
 
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
-        FeedData memory fd = FeedData(feed, decimals, underlyingDecimals);
+        Feed memory fd = Feed(feed, decimals, underlyingDecimals);
 
-        oracle.workaround_setFeedData(feed, fd);
+        oracle.workaround_setAllFeeds(feed, fd);
 
         vm.expectRevert(
             abi.encodeWithSelector(BasePriceOracle.PriceNotSet.selector, cToken)
@@ -43,13 +43,13 @@ contract SafeGetFeedData is Test {
         address cTokenAddress = makeAddr("cToken");
         CToken cToken = CToken(cTokenAddress);
 
-        oracle.workaround_setCTokenFeed(cToken, feed);
+        oracle.workaround_setConnectedFeeds(cToken, feed);
 
         uint256 decimals = 8;
         uint256 underlyingDecimals = 18;
-        FeedData memory fd = FeedData(feed, decimals, underlyingDecimals);
+        Feed memory fd = Feed(feed, decimals, underlyingDecimals);
 
-        oracle.workaround_setFeedData(feed, fd);
+        oracle.workaround_setAllFeeds(feed, fd);
 
         uint256 price = 1e8; // $1 (8 decimals)
         oracle.workaround_setPrice(feed, price);
