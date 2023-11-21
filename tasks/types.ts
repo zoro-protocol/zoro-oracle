@@ -6,9 +6,9 @@ export interface ConfigureFeedParams {
   feedId: string;
 }
 
-export interface SetCTokenFeedParams {
-  cToken: string;
-  asset: string;
+export interface ConnectCTokenToFeedParams {
+  cTokenId: string;
+  feedId: string;
 }
 
 export interface Feed {

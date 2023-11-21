@@ -39,7 +39,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: "zkLocal", // optional (if not set, use '--network zkTestnet')
 };
 
-import "./tasks/setCTokenFeed";
 import "./tasks/configureFeed";
+import "./tasks/connectCTokenToFeed";
 
 export default config;
