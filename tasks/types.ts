@@ -2,21 +2,21 @@ export interface AddressConfig {
   [contract: string]: { [chainId: number]: string };
 }
 
-export interface SetFeedDataParams {
-  asset: string;
+export interface ConfigureFeedParams {
+  feedId: string;
 }
 
-export interface SetCTokenFeedParams {
-  cToken: string;
-  asset: string;
+export interface ConnectCTokenToFeedParams {
+  cTokenId: string;
+  feedId: string;
 }
 
-export interface FeedData {
+export interface Feed {
   feed: string;
   decimals: number;
   underlyingDecimals: number;
 }
 
 export interface FeedDataConfig {
-  [name: string]: FeedData;
+  [name: string]: Feed;
 }
