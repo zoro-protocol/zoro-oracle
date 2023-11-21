@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: BSD-3-Clause
 pragma solidity 0.8.18;
 
-/**
- *
- *  __  /   _ \  _ \   _ \     _ \ _ \   _ \ __ __| _ \   __|   _ \  |
- *     /   (   |   /  (   |    __/   /  (   |   |  (   | (     (   | |
- *  ____| \___/ _|_\ \___/    _|  _|_\ \___/   _| \___/ \___| \___/ ____|
- *
- */
+//  __  /   _ \  _ \   _ \     _ \ _ \   _ \ __ __| _ \   __|   _ \  |
+//     /   (   |   /  (   |    __/   /  (   |   |  (   | (     (   | |
+//  ____| \___/ _|_\ \___/    _|  _|_\ \___/   _| \___/ \___| \___/ ____|
 
 import {AccessControlDefaultAdminRules as AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControlDefaultAdminRules.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
