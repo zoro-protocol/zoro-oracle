@@ -4,7 +4,7 @@ import { type Contract, type Wallet } from "zksync-web3";
 import { Deployer } from "@matterlabs/hardhat-zksync-deploy";
 import { getChainId } from "../tasks/utils";
 import { recordMainAddress } from "../tasks/addresses";
-import { type OracleConstructorArgs } from "../types";
+import { type OracleConstructorArgs } from "../scripts/types";
 
 export default async function (hre: HardhatRuntimeEnvironment): Promise<void> {
   const wallet: Wallet = await hre.getZkWallet();
