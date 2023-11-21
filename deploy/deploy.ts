@@ -4,7 +4,7 @@ import { type Contract, type Wallet } from "zksync-web3";
 import { Deployer } from "@matterlabs/hardhat-zksync-deploy";
 import { getChainId } from "../tasks/utils";
 import { recordMainAddress } from "../tasks/addresses";
-import { type OracleConstructorArgs } from "../types";
+import { type OracleConstructorArgs } from "../scripts/types";
 
 export default async function (hre: HardhatRuntimeEnvironment): Promise<void> {
   const wallet: Wallet = await hre.getZkWallet();
@@ -12,7 +12,7 @@ export default async function (hre: HardhatRuntimeEnvironment): Promise<void> {
   const deployer: Deployer = new Deployer(hre, wallet);
 
   const artifact = await deployer.loadArtifact(
-    "src/PriceOracle.sol:PriceOracle",
+    "src/BasePriceOracle.sol:BasePriceOracle",
   );
 
   const pricePublisher: string = wallet.address;
@@ -48,7 +48,7 @@ export default async function (hre: HardhatRuntimeEnvironment): Promise<void> {
     // Verify contract programmatically
     //
     // Contract MUST be fully qualified name (e.g. path/sourceName:contractName)
-    const contractFullyQualifedName = "src/PriceOracle.sol:PriceOracle";
+    const contractFullyQualifedName = "src/BasePriceOracle.sol:BasePriceOracle";
     const verificationId: number = await hre.run("verify:verify", {
       address: contractAddress,
       contract: contractFullyQualifedName,

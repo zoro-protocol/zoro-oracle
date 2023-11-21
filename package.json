@@ -1,7 +1,7 @@
 {
   "scripts": {
     "compile": "hardhat compile",
-    "deploy": "hardhat deploy-zksync",
+    "deploy": "hardhat compile && hardhat deploy-zksync",
     "test": "forge test -vvv"
   },
   "devDependencies": {
@@ -12,6 +12,7 @@
     "@types/lodash": "^4.14.200",
     "@typescript-eslint/eslint-plugin": "^6.2.1",
     "@typescript-eslint/parser": "^6.2.1",
+    "@zoroprotocol/hardhat-zksync-web3": "^1.0.0",
     "dotenv": "^16.3.1",
     "enquirer": "^2.4.1",
     "eslint": "^8.46.0",

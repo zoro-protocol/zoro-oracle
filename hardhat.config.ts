@@ -3,7 +3,7 @@ import { HardhatUserConfig } from "hardhat/types";
 import "@nomiclabs/hardhat-ethers";
 import "@nomicfoundation/hardhat-foundry";
 import "@matterlabs/hardhat-zksync-toolbox";
-import "./zk-wallet";
+import "@zoroprotocol/hardhat-zksync-web3";
 
 import richWallets from "./rich-wallets.json";
 
