@@ -2,8 +2,6 @@ import { type HardhatRuntimeEnvironment } from "hardhat/types";
 import { type BigNumber } from "ethers";
 import { type Contract, type Wallet } from "zksync-web3";
 import { Deployer } from "@matterlabs/hardhat-zksync-deploy";
-import { getChainId } from "../tasks/utils";
-import { recordMainAddress } from "../tasks/addresses";
 import { type OracleConstructorArgs } from "../scripts/types";
 
 export default async function (hre: HardhatRuntimeEnvironment): Promise<void> {
@@ -33,9 +31,7 @@ export default async function (hre: HardhatRuntimeEnvironment): Promise<void> {
 
   const contract: Contract = await deployer.deploy(artifact, args);
 
-  const chainId = getChainId(hre);
-
-  recordMainAddress(chainId, "oracle", contract.address);
+  hre.recordAddress("oracle", "base", contract.address);
 
   // obtain the Constructor Arguments
   console.log("constructor args: ", contract.interface.encodeDeploy(args));
