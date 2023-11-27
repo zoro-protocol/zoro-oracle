@@ -2,9 +2,7 @@ import * as ethers from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { task } from "hardhat/config";
 import { Wallet } from "zksync-web3";
-import { getChainId } from "./utils";
-import { getMainAddresses } from "./addresses";
-import { Feed, FeedDataConfig, ConfigureFeedParams } from "./types";
+import { Feed, FeedDataConfig, ConfigureFeedParams } from "../scripts/types";
 import feedData from "../deploy/feeds.json";
 
 export async function main(
@@ -13,9 +11,7 @@ export async function main(
 ): Promise<void> {
   const wallet: Wallet = await hre.getZkWallet();
 
-  const chainId: number = getChainId(hre);
-
-  const oracleAddress: string = getMainAddresses()["oracle"][chainId];
+  const oracleAddress: string = hre.getAddress("oracle", "base");
 
   const oracle: ethers.Contract = await hre.ethers.getContractAt(
     "src/BasePriceOracle.sol:BasePriceOracle",

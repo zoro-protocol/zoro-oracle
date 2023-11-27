@@ -4,6 +4,7 @@ import "@nomiclabs/hardhat-ethers";
 import "@nomicfoundation/hardhat-foundry";
 import "@matterlabs/hardhat-zksync-toolbox";
 import "@zoroprotocol/hardhat-zksync-web3";
+import "@zoroprotocol/hardhat-addresses";
 
 import richWallets from "./rich-wallets.json";
 

@@ -2,10 +2,10 @@ import * as ethers from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { task } from "hardhat/config";
 import { Wallet } from "zksync-web3";
-import { getChainId } from "./utils";
-import { getMainAddresses, getCTokenAddresses } from "./addresses";
-import { FeedDataConfig, ConnectCTokenToFeedParams } from "./types";
+import { FeedDataConfig, ConnectCTokenToFeedParams } from "../scripts/types";
 import feedData from "../deploy/feeds.json";
+
+const cTokenAddresses = "../lib/zoro-protocol/zksync/deploy/addresses/zTokens.json";
 
 export async function main(
   hre: HardhatRuntimeEnvironment,
@@ -14,9 +14,7 @@ export async function main(
 ): Promise<void> {
   const wallet: Wallet = await hre.getZkWallet();
 
-  const chainId: number = getChainId(hre);
-
-  const oracleAddress: string = getMainAddresses()["oracle"][chainId];
+  const oracleAddress: string = hre.getAddress("oracle", "base");
 
   const oracle: ethers.Contract = await hre.ethers.getContractAt(
     "src/BasePriceOracle.sol:BasePriceOracle",
@@ -26,7 +24,7 @@ export async function main(
 
   const { feed }: { feed: string } = (feedData as FeedDataConfig)[feedId.toLowerCase()];
 
-  const cToken = getCTokenAddresses()[cTokenId][chainId];
+  const cToken = hre.getAddress(cTokenAddresses, cTokenId);
 
   const tx = await oracle.connectCTokenToFeed(cToken, feed);
   tx.wait();
