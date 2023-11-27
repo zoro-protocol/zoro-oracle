@@ -26,8 +26,12 @@ export async function main(
 
   const cToken = hre.getAddress(cTokenAddresses, cTokenId);
 
-  const tx = await oracle.connectCTokenToFeed(cToken, feed);
-  tx.wait();
+  try {
+    const tx = await oracle.connectCTokenToFeed(cToken, feed);
+    tx.wait();
+  } catch {
+    throw new Error("Failed to connect, feed may not be configured");
+  }
 }
 
 task(
