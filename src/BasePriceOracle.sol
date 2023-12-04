@@ -43,10 +43,12 @@ contract BasePriceOracle is
     mapping(AggregatorV3Interface => Feed) public allFeeds;
     mapping(CToken => AggregatorV3Interface) public connectedFeeds;
 
-    EnumerableSet.AddressSet internal _feedAddresses;
+    // `public` so price publisher can read values without knowledge of `CToken`
+    // The values in `feedPrices` can be compared directly with `latestAnswer`
+    // Whereas `getUnderlyingPrice` values are converted for a `CToken`
+    mapping(AggregatorV3Interface => uint256) public feedPrices;
 
-    // `internal` so all integrations must access through `getUnderlyingPrice`
-    mapping(AggregatorV3Interface => uint256) internal _prices;
+    EnumerableSet.AddressSet internal _feedAddresses;
 
     event NewPrice(AggregatorV3Interface indexed feed, uint256 price);
     event UpdateFeed(
@@ -147,7 +149,7 @@ contract BasePriceOracle is
     {
         Feed memory fd = _getConnectedFeed(cToken);
 
-        uint256 feedPrice = _prices[fd.feed];
+        uint256 feedPrice = feedPrices[fd.feed];
         if (feedPrice == 0) revert PriceNotSet(cToken);
 
         uint256 priceMantissa = _convertDecimalsForComptroller(
@@ -173,7 +175,7 @@ contract BasePriceOracle is
         _validateFeed(allFeeds[feed], feed);
         _validatePrice(price);
 
-        _prices[feed] = price;
+        feedPrices[feed] = price;
     }
 
     function _configureFeed(

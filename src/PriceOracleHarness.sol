@@ -33,7 +33,7 @@ contract PriceOracleHarness is BasePriceOracle {
     function workaround_setPrice(AggregatorV3Interface feed, uint256 price)
         external
     {
-        _prices[feed] = price;
+        feedPrices[feed] = price;
     }
 
     function exposed_configureFeed(
@@ -64,7 +64,7 @@ contract PriceOracleHarness is BasePriceOracle {
         view
         returns (uint256)
     {
-        return _prices[feed];
+        return feedPrices[feed];
     }
 
     function exposed_convertDecimalsForComptroller(
