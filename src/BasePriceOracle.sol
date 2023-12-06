@@ -168,9 +168,25 @@ contract BasePriceOracle is
         return _feedAddresses.values();
     }
 
-    function _setUnderlyingPrice(AggregatorV3Interface feed, uint256 price)
-        internal
+    /**
+     * @notice Get an array of feed prices without any decimal conversion
+     * @notice Used by price publisher to compare with new feed prices
+     */
+    function getFeedPrices(AggregatorV3Interface[] calldata feeds)
+        external
+        view
+        returns (uint256[] memory)
     {
+        uint256[] memory prices = new uint256[](feeds.length);
+
+        for (uint256 i = 0; i < feeds.length; i++) {
+            prices[i] = feedPrices[feeds[i]];
+        }
+
+        return prices;
+    }
+
+    function _setFeedPrice(AggregatorV3Interface feed, uint256 price) internal {
         _validateAddress(address(feed));
         _validateFeed(allFeeds[feed], feed);
         _validatePrice(price);
