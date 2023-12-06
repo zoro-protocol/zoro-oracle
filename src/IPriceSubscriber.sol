@@ -6,6 +6,11 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 interface IPriceSubscriber {
     function setFeedPrice(AggregatorV3Interface feed, uint256 price) external;
 
+    function setFeedPrices(
+        AggregatorV3Interface[] calldata feeds,
+        uint256[] calldata prices
+    ) external;
+
     function getFeedPrices(AggregatorV3Interface[] calldata feeds)
         external
         view

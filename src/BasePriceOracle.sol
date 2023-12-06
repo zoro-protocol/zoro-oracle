@@ -65,6 +65,7 @@ contract BasePriceOracle is
     error InvalidAddress();
     error FeedNotConfigured(AggregatorV3Interface feed);
     error PriceNotSet(CToken cToken);
+    error PricesDoNotMatchFeeds(uint256 feedCount, uint256 priceCount);
 
     /**
      * @param pricePublisher Account that publishes new prices from Chainlink
@@ -95,6 +96,30 @@ contract BasePriceOracle is
         _setFeedPrice(feed, price);
 
         emit NewPrice(feed, price);
+    }
+
+    /**
+     * @notice Publish the price from a feed
+     * @notice Reverts if a new price is invalid
+     * @notice Reverts if a feed is not configured with `configureFeed`
+     * @notice Reverts if the feed array and price array have different lengths
+     * @param feeds Chainlink data feeds https://data.chain.link/
+     * @param prices `latestAnswer` from `feed` without any decimal conversion
+     */
+    function setFeedPrices(
+        AggregatorV3Interface[] calldata feeds,
+        uint256[] calldata prices
+    ) external onlyRole(PRICE_PUBLISHER_ROLE) nonReentrant {
+        _validateFeedAndPriceArrays(feeds, prices);
+
+        for (uint256 i = 0; i < feeds.length; i++) {
+            AggregatorV3Interface feed = feeds[i];
+            uint256 price = prices[i];
+
+            _setFeedPrice(feed, price);
+
+            emit NewPrice(feed, price);
+        }
     }
 
     /**
@@ -278,5 +303,14 @@ contract BasePriceOracle is
 
     function _validatePrice(uint256 price) internal pure {
         if (price == 0) revert PriceIsZero();
+    }
+
+    function _validateFeedAndPriceArrays(
+        AggregatorV3Interface[] memory feeds,
+        uint256[] memory prices
+    ) internal pure {
+        if (feeds.length != prices.length) {
+            revert PricesDoNotMatchFeeds(feeds.length, prices.length);
+        }
     }
 }
