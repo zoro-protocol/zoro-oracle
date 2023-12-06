@@ -29,7 +29,7 @@ contract SetUnderlyingPrice is Test {
 
         uint256 price = 0; // $0 (8 decimals)
         vm.expectRevert(BasePriceOracle.PriceIsZero.selector);
-        oracle.setUnderlyingPrice(feed, price);
+        oracle.exposed_setFeedPrice(feed, price);
     }
 
     function test_RevertIfFeedIsNotConfigured() public {
@@ -43,7 +43,7 @@ contract SetUnderlyingPrice is Test {
                 feed
             )
         );
-        oracle.setUnderlyingPrice(feed, price);
+        oracle.exposed_setFeedPrice(feed, price);
     }
 
     function test_SetFirstPriceData() public {
@@ -57,7 +57,7 @@ contract SetUnderlyingPrice is Test {
         oracle.workaround_setAllFeeds(feed, fd);
 
         uint256 price = 1e8; // $1 (8 decimals)
-        oracle.setUnderlyingPrice(feed, price);
+        oracle.exposed_setFeedPrice(feed, price);
 
         uint256 result = oracle.exposed_prices(feed);
 
@@ -75,10 +75,10 @@ contract SetUnderlyingPrice is Test {
         oracle.workaround_setAllFeeds(feed, fd);
 
         uint256 price = 1e8; // $1 (8 decimals)
-        oracle.setUnderlyingPrice(feed, price);
+        oracle.exposed_setFeedPrice(feed, price);
 
         uint256 newPrice = 11e7; // $1.10
-        oracle.setUnderlyingPrice(feed, newPrice);
+        oracle.exposed_setFeedPrice(feed, newPrice);
 
         uint256 result = oracle.exposed_prices(feed);
 

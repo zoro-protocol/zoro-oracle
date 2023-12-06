@@ -51,6 +51,12 @@ contract PriceOracleHarness is BasePriceOracle {
         _connectCTokenToFeed(cToken, feed);
     }
 
+    function exposed_setFeedPrice(AggregatorV3Interface feed, uint256 price)
+        external
+    {
+        _setFeedPrice(feed, price);
+    }
+
     function exposed_getConnectedFeed(CToken cToken)
         external
         view
