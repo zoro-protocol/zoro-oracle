@@ -25,7 +25,10 @@ interface IFeedRegistry {
     function connectCTokenToFeed(CToken cToken, AggregatorV3Interface feed)
         external;
 
-    function connectedFeeds(CToken) external returns (AggregatorV3Interface);
+    function connectedFeeds(CToken)
+        external
+        view
+        returns (AggregatorV3Interface);
 
     function getFeedAddresses() external view returns (address[] memory);
 }
