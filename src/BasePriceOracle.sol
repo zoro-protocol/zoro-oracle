@@ -15,9 +15,11 @@ import {CToken, PriceOracle as IPriceOracle} from "lib/zoro-protocol/contracts/P
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 
 /**
- * @author Zoro
+ * @author Zoro Protocol
  * @notice Prices are published to the oracle from Chainlink data feeds
  * @notice Prices are consumed from the oracle by `Comptroller` contracts
+ * @notice Feed prices are in the same format as the Chainlink data feed
+ * @notice Underlying prices are in the format expected by a `Comptroller`
  * @notice Feeds must be configured before prices can be published
  * @notice A `CToken` must be connected to a feed before prices can be consumed
  */
@@ -127,6 +129,8 @@ contract BasePriceOracle is
      * @notice A feed must be configured before it can have prices published
      * @notice A feed must be configured before a `CToken` can be connected
      * @param feed Chainlink data feed https://data.chain.link/
+     * @param decimals Decimal format used by the Chainlink data feed
+     * @param underlyingDecimals Decimal format of the asset being priced
      */
     function configureFeed(
         AggregatorV3Interface feed,
@@ -196,6 +200,8 @@ contract BasePriceOracle is
     /**
      * @notice Get an array of feed prices without any decimal conversion
      * @notice Used by price publisher to compare with new feed prices
+     * @param feeds Chainlink data feeds https://data.chain.link/
+     * @return Price array in the same order as the `feeds` array
      */
     function getFeedPrices(AggregatorV3Interface[] calldata feeds)
         external
