@@ -87,12 +87,12 @@ contract BasePriceOracle is
      * @param feed Chainlink data feed https://data.chain.link/
      * @param price `latestAnswer` from `feed` without any decimal conversion
      */
-    function setUnderlyingPrice(AggregatorV3Interface feed, uint256 price)
+    function setFeedPrice(AggregatorV3Interface feed, uint256 price)
         external
         onlyRole(PRICE_PUBLISHER_ROLE)
         nonReentrant
     {
-        _setUnderlyingPrice(feed, price);
+        _setFeedPrice(feed, price);
 
         emit NewPrice(feed, price);
     }
