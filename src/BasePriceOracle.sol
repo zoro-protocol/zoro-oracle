@@ -211,7 +211,10 @@ contract BasePriceOracle is
         uint256[] memory prices = new uint256[](feeds.length);
 
         for (uint256 i = 0; i < feeds.length; i++) {
-            prices[i] = feedPrices[feeds[i]];
+            AggregatorV3Interface feed = feeds[i];
+            _validateFeed(allFeeds[feed], feed);
+
+            prices[i] = feedPrices[feed];
         }
 
         return prices;
