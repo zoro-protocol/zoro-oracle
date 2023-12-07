@@ -33,7 +33,7 @@ contract PriceOracleHarness is BasePriceOracle {
     function workaround_setPrice(AggregatorV3Interface feed, uint256 price)
         external
     {
-        _prices[feed] = price;
+        feedPrices[feed] = price;
     }
 
     function exposed_configureFeed(
@@ -51,20 +51,18 @@ contract PriceOracleHarness is BasePriceOracle {
         _connectCTokenToFeed(cToken, feed);
     }
 
+    function exposed_setFeedPrice(AggregatorV3Interface feed, uint256 price)
+        external
+    {
+        _setFeedPrice(feed, price);
+    }
+
     function exposed_getConnectedFeed(CToken cToken)
         external
         view
         returns (Feed memory)
     {
         return _getConnectedFeed(cToken);
-    }
-
-    function exposed_prices(AggregatorV3Interface feed)
-        external
-        view
-        returns (uint256)
-    {
-        return _prices[feed];
     }
 
     function exposed_convertDecimalsForComptroller(
@@ -85,6 +83,13 @@ contract PriceOracleHarness is BasePriceOracle {
         pure
     {
         _validateFeed(fd, feed);
+    }
+
+    function exposed_validateFeedAndPriceArrays(
+        AggregatorV3Interface[] memory feeds,
+        uint256[] memory prices
+    ) external pure {
+        _validateFeedAndPriceArrays(feeds, prices);
     }
 
     function exposed_validatePrice(uint256 price) external pure {

@@ -15,9 +15,11 @@ import {CToken, PriceOracle as IPriceOracle} from "lib/zoro-protocol/contracts/P
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 
 /**
- * @author Zoro
+ * @author Zoro Protocol
  * @notice Prices are published to the oracle from Chainlink data feeds
  * @notice Prices are consumed from the oracle by `Comptroller` contracts
+ * @notice Feed prices are in the same format as the Chainlink data feed
+ * @notice Underlying prices are in the format expected by a `Comptroller`
  * @notice Feeds must be configured before prices can be published
  * @notice A `CToken` must be connected to a feed before prices can be consumed
  */
@@ -43,10 +45,12 @@ contract BasePriceOracle is
     mapping(AggregatorV3Interface => Feed) public allFeeds;
     mapping(CToken => AggregatorV3Interface) public connectedFeeds;
 
-    EnumerableSet.AddressSet internal _feedAddresses;
+    // `public` so price publisher can read values without knowledge of `CToken`
+    // The values in `feedPrices` can be compared directly with `latestAnswer`
+    // Whereas `getUnderlyingPrice` values are converted for a `CToken`
+    mapping(AggregatorV3Interface => uint256) public feedPrices;
 
-    // `internal` so all integrations must access through `getUnderlyingPrice`
-    mapping(AggregatorV3Interface => uint256) internal _prices;
+    EnumerableSet.AddressSet internal _feedAddresses;
 
     event NewPrice(AggregatorV3Interface indexed feed, uint256 price);
     event UpdateFeed(
@@ -63,6 +67,7 @@ contract BasePriceOracle is
     error InvalidAddress();
     error FeedNotConfigured(AggregatorV3Interface feed);
     error PriceNotSet(CToken cToken);
+    error PricesDoNotMatchFeeds(uint256 feedCount, uint256 priceCount);
 
     /**
      * @param pricePublisher Account that publishes new prices from Chainlink
@@ -85,14 +90,38 @@ contract BasePriceOracle is
      * @param feed Chainlink data feed https://data.chain.link/
      * @param price `latestAnswer` from `feed` without any decimal conversion
      */
-    function setUnderlyingPrice(AggregatorV3Interface feed, uint256 price)
+    function setFeedPrice(AggregatorV3Interface feed, uint256 price)
         external
         onlyRole(PRICE_PUBLISHER_ROLE)
         nonReentrant
     {
-        _setUnderlyingPrice(feed, price);
+        _setFeedPrice(feed, price);
 
         emit NewPrice(feed, price);
+    }
+
+    /**
+     * @notice Publish the price from a feed
+     * @notice Reverts if a new price is invalid
+     * @notice Reverts if a feed is not configured with `configureFeed`
+     * @notice Reverts if the feed array and price array have different lengths
+     * @param feeds Chainlink data feeds https://data.chain.link/
+     * @param prices `latestAnswer` from `feed` without any decimal conversion
+     */
+    function setFeedPrices(
+        AggregatorV3Interface[] calldata feeds,
+        uint256[] calldata prices
+    ) external onlyRole(PRICE_PUBLISHER_ROLE) nonReentrant {
+        _validateFeedAndPriceArrays(feeds, prices);
+
+        for (uint256 i = 0; i < feeds.length; i++) {
+            AggregatorV3Interface feed = feeds[i];
+            uint256 price = prices[i];
+
+            _setFeedPrice(feed, price);
+
+            emit NewPrice(feed, price);
+        }
     }
 
     /**
@@ -100,6 +129,8 @@ contract BasePriceOracle is
      * @notice A feed must be configured before it can have prices published
      * @notice A feed must be configured before a `CToken` can be connected
      * @param feed Chainlink data feed https://data.chain.link/
+     * @param decimals Decimal format used by the Chainlink data feed
+     * @param underlyingDecimals Decimal format of the asset being priced
      */
     function configureFeed(
         AggregatorV3Interface feed,
@@ -147,7 +178,7 @@ contract BasePriceOracle is
     {
         Feed memory fd = _getConnectedFeed(cToken);
 
-        uint256 feedPrice = _prices[fd.feed];
+        uint256 feedPrice = feedPrices[fd.feed];
         if (feedPrice == 0) revert PriceNotSet(cToken);
 
         uint256 priceMantissa = _convertDecimalsForComptroller(
@@ -166,14 +197,35 @@ contract BasePriceOracle is
         return _feedAddresses.values();
     }
 
-    function _setUnderlyingPrice(AggregatorV3Interface feed, uint256 price)
-        internal
+    /**
+     * @notice Get an array of feed prices without any decimal conversion
+     * @notice Used by price publisher to compare with new feed prices
+     * @param feeds Chainlink data feeds https://data.chain.link/
+     * @return Price array in the same order as the `feeds` array
+     */
+    function getFeedPrices(AggregatorV3Interface[] calldata feeds)
+        external
+        view
+        returns (uint256[] memory)
     {
+        uint256[] memory prices = new uint256[](feeds.length);
+
+        for (uint256 i = 0; i < feeds.length; i++) {
+            AggregatorV3Interface feed = feeds[i];
+            _validateFeed(allFeeds[feed], feed);
+
+            prices[i] = feedPrices[feed];
+        }
+
+        return prices;
+    }
+
+    function _setFeedPrice(AggregatorV3Interface feed, uint256 price) internal {
         _validateAddress(address(feed));
         _validateFeed(allFeeds[feed], feed);
         _validatePrice(price);
 
-        _prices[feed] = price;
+        feedPrices[feed] = price;
     }
 
     function _configureFeed(
@@ -260,5 +312,14 @@ contract BasePriceOracle is
 
     function _validatePrice(uint256 price) internal pure {
         if (price == 0) revert PriceIsZero();
+    }
+
+    function _validateFeedAndPriceArrays(
+        AggregatorV3Interface[] memory feeds,
+        uint256[] memory prices
+    ) internal pure {
+        if (feeds.length != prices.length) {
+            revert PricesDoNotMatchFeeds(feeds.length, prices.length);
+        }
     }
 }

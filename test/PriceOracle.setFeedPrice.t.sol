@@ -29,7 +29,7 @@ contract SetUnderlyingPrice is Test {
 
         vm.expectRevert();
         hoax(msg.sender);
-        oracle.setUnderlyingPrice(feed, price);
+        oracle.setFeedPrice(feed, price);
     }
 
     function test_EmitOnSuccess() public {
@@ -46,6 +46,6 @@ contract SetUnderlyingPrice is Test {
 
         vm.expectEmit();
         emit NewPrice(feed, price);
-        oracle.setUnderlyingPrice(feed, price);
+        oracle.setFeedPrice(feed, price);
     }
 }
