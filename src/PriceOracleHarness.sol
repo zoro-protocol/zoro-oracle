@@ -65,14 +65,6 @@ contract PriceOracleHarness is BasePriceOracle {
         return _getConnectedFeed(cToken);
     }
 
-    function exposed_prices(AggregatorV3Interface feed)
-        external
-        view
-        returns (uint256)
-    {
-        return feedPrices[feed];
-    }
-
     function exposed_convertDecimalsForComptroller(
         uint256 value,
         uint256 decimals,

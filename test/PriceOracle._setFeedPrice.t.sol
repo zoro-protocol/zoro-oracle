@@ -59,7 +59,7 @@ contract SetUnderlyingPrice is Test {
         uint256 price = 1e8; // $1 (8 decimals)
         oracle.exposed_setFeedPrice(feed, price);
 
-        uint256 result = oracle.exposed_prices(feed);
+        uint256 result = oracle.feedPrices(feed);
 
         assertEq(result, price);
     }
@@ -80,7 +80,7 @@ contract SetUnderlyingPrice is Test {
         uint256 newPrice = 11e7; // $1.10
         oracle.exposed_setFeedPrice(feed, newPrice);
 
-        uint256 result = oracle.exposed_prices(feed);
+        uint256 result = oracle.feedPrices(feed);
 
         assertEq(result, newPrice);
     }
