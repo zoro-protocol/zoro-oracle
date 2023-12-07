@@ -93,6 +93,13 @@ contract PriceOracleHarness is BasePriceOracle {
         _validateFeed(fd, feed);
     }
 
+    function exposed_validateFeedAndPriceArrays(
+        AggregatorV3Interface[] memory feeds,
+        uint256[] memory prices
+    ) external pure {
+        _validateFeedAndPriceArrays(feeds, prices);
+    }
+
     function exposed_validatePrice(uint256 price) external pure {
         _validatePrice(price);
     }
